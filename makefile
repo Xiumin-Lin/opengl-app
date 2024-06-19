@@ -1,5 +1,5 @@
 CC = g++
-SRC = main.cpp ./include/Application.cpp ./common/GLShader.cpp
+SRC = main.cpp ./include/Application.cpp ./common/GLShader.cpp ./vendor/tiny_obj_loader.cc ./include/Utils.cpp
 
 # MacOS makefile for OpenGL application
 BIN = opengl_app

@@ -1,5 +1,6 @@
 #include "Application.h"
 #include <iostream>
+#include "Utils.h"
 
 void Application::Initialize(int width, int height)
 {
@@ -37,13 +38,13 @@ void Application::Initialize(int width, int height)
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(uint16_t), indices.data(), GL_STATIC_DRAW);
 
-    int POSITION = 0;   // glGetAttribLocation(m_basicProgram.GetProgram(), "a_Position");
+    int POSITION = 0; // glGetAttribLocation(m_basicProgram.GetProgram(), "a_Position");
     glEnableVertexAttribArray(POSITION);
     glVertexAttribPointer(POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, position));
 
-    int COLOR = 1;      // glGetAttribLocation(m_basicProgram.GetProgram(), "a_Color");
-    glEnableVertexAttribArray(COLOR);
-    glVertexAttribPointer(COLOR, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, color));
+    // int COLOR = 1; // glGetAttribLocation(m_basicProgram.GetProgram(), "a_Color");
+    // glEnableVertexAttribArray(COLOR);
+    // glVertexAttribPointer(COLOR, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, color));
 
     glBindVertexArray(0);
 }
@@ -72,4 +73,10 @@ void Application::Terminate()
     glDeleteBuffers(1, &IBO);
     glDeleteVertexArrays(1, &VAO);
     m_basicProgram.Destroy();
+}
+
+void Application::LoadObject(const char *filename)
+{
+    m_meshes = Utils::load_obj(filename);
+    std::cout << "Application Loaded " << m_meshes.size() << " meshes" << std::endl;
 }

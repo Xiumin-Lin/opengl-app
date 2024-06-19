@@ -1,7 +1,8 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include "include/Application.h"
 #include <iostream>
+
+#include "include/Application.h"
 
 const int WIDTH = 800;
 const int HEIGHT = 600;
@@ -33,6 +34,7 @@ int main(void)
 
     Application app;
     app.Initialize(WIDTH, HEIGHT);
+    app.LoadObject("assets/cube.obj");
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
