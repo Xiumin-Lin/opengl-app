@@ -30,6 +30,7 @@ struct Vertex
 struct Application
 {
     GLShader m_basicProgram;
+    GLuint VBO, IBO, VAO;
 
     void Initialize()
     {
@@ -41,10 +42,46 @@ struct Application
 #ifdef WIN32
         wglSwapIntervalEXT(1);
 #endif
+        const std::vector<Vertex> triangles = {
+            {{0.0f, 0.5f}, {1.0f, 0.0f, 0.0f}},   // rouge
+            {{-0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}}, // vert
+            {{0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}}   // bleu
+        };
+
+        // GLuint == uint32_t
+        // GLushort == uint16_t
+        const std::vector<uint16_t> indices = { 0, 1, 2 };
+
+        // Générer VBO et IBO
+        glGenBuffers(1, &VBO);
+        glGenBuffers(1, &IBO);
+
+        // Générer et lier le VAO
+        glGenVertexArrays(1, &VAO);
+        glBindVertexArray(VAO);
+
+            glBindBuffer(GL_ARRAY_BUFFER, VBO);
+                glBufferData(GL_ARRAY_BUFFER, triangles.size() * sizeof(Vertex), triangles.data(), GL_STATIC_DRAW);
+
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+                glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(uint16_t), indices.data(), GL_STATIC_DRAW);
+
+            const int POSITION = 0; // glGetAttribLocation(m_basicProgram.GetProgram(), "a_Position");
+            const int COLOR = 1;    // glGetAttribLocation(m_basicProgram.GetProgram(), "a_Color");
+            glEnableVertexAttribArray(POSITION);
+            glVertexAttribPointer(POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
+
+            glEnableVertexAttribArray(COLOR);
+            glVertexAttribPointer(COLOR, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
+
+        glBindVertexArray(0);
     }
 
     void Terminate()
     {
+        glDeleteBuffers(1, &VBO);
+        glDeleteBuffers(1, &IBO);
+        glDeleteVertexArrays(1, &VAO);
         m_basicProgram.Destroy();
     }
 
@@ -52,59 +89,21 @@ struct Application
     {
         // etape a. A vous de recuperer/passer les variables width/height
         glViewport(0, 0, WIDTH, HEIGHT);
-
-        // etape b. Notez que giClearColor est un etat, donc persistant
+        // etape b. Notez que glClearColor est un etat, donc persistant
         glClearColor(0.5f, 0.5f, 0.5f, 1.f);
         glClear(GL_COLOR_BUFFER_BIT);
-
         // etape c. on specifie le shader program a utiliser
         uint32_t program = m_basicProgram.GetProgram();
         glUseProgram(program);
 
-        // etape d. définition d’une géométrie
-        // premier parametre = 0, correspond ici au canal/emplacement du premier attribut
-        // glEnableVertexAttribArray() indique que les donnees sont generiques (proviennent
-        // d’un tableau) et non pas communes a tous les sommets
-        const std::vector<Vertex> triangles =
-            {
-                {{0.0f, 0.5f}, {1.0f, 0.0f, 0.0f}},   // sommet 0 et couleur rouge
-                {{-0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}}, // sommet 1 et couleur verte
-                {{0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}}   // sommet 2 et couleur bleue
-            };
-
-        // {[x, y], [r, g, b]}
-        const int POSITION = glGetAttribLocation(program, "a_Position");
-        const int COLOR = glGetAttribLocation(program, "a_Color");
-        if (POSITION < 0 || COLOR < 0)
-        {
-            std::cout << "erreur de programme";
-            return;
-        }
-
-        glEnableVertexAttribArray(POSITION);
-        // &triangles[0].position est un pointeur vers le premier élément de la première position dans le tableau triangles.
-        // ensuite chaque sommet est composé de 2 GL_FLOAT et ne sont pas normalisées (GL_FALSE)
-        // et que le stride (l’espacement entre les attributs successifs) est de sizeof(Vertex) (taille d'un sommet)
-        glVertexAttribPointer(POSITION, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex) /*stride*/, &triangles[0].position);
-
-        glEnableVertexAttribArray(COLOR);
-        glVertexAttribPointer(COLOR, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex) /*stride*/, &triangles[0].color);
-
-        // etape e. paramétrer le rendu
-        int timeLocation = glGetUniformLocation(program, "u_Time");
+        int timeLocation = glGetUniformLocation(m_basicProgram.GetProgram(), "u_Time");
         double time = glfwGetTime();
         glUniform1f(timeLocation, static_cast<float>(time));
 
-        // etape f. dessin de triangles dont la definition provient d'un tableau
-        // le rendu s'effectue ici en prenant 3 sommets a partir du debut du tableau (0)
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-        // GLuint == uint32_t
-        // GLushort == uint16_t
-        //  const uint16_t indices[] = { 0, 1, 2 };
-        // glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, indices);
-
-        glDisableVertexAttribArray(POSITION);
-        glDisableVertexAttribArray(COLOR);
+        // etape e. paramétrer le rendu
+        glBindVertexArray(VAO);
+            glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, nullptr);
+        glBindVertexArray(0);
 
         // Il on suppose que la phase d'echange des buffers front et back
         // le « swap buffers » est effectuee juste apres
@@ -131,12 +130,14 @@ int main(void)
     glfwMakeContextCurrent(window);
 
     // ICI !
+    glewExperimental = GL_TRUE; // need for VAO on MacOs
     GLenum error = glewInit();
     if (error != GLEW_OK)
     {
         std::cout << "Erreur d'initialisation de GLEW" << std::endl;
     }
 
+    std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
     Application app;
     app.Initialize();
 
