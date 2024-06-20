@@ -31,6 +31,9 @@ int main(void)
         std::cout << "Erreur d'initialisation de GLEW" << std::endl;
         return -1;
     }
+    // OPENGL CONFIG -----------------------------------------------
+    // Activer le test de profondeur
+    glEnable(GL_DEPTH_TEST);
 
     // Activer le culling des faces
     glEnable(GL_CULL_FACE);
@@ -46,6 +49,7 @@ int main(void)
     // - GL_FRONT_AND_BACK: toutes les faces
     // glCullFace(GL_BACK);
 
+    // ---------------------------------------------------------------
     Application app;
     app.Initialize(window, WIDTH, HEIGHT, "./assets/cube.obj");
     

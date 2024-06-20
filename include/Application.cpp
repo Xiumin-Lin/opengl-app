@@ -87,7 +87,7 @@ void Application::Render()
 {
     glViewport(0, 0, m_windowWidth, m_windowHeight);
     glClearColor(0.5f, 0.5f, 0.5f, 1.f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glUseProgram(m_basicProgram.GetProgram());
 
