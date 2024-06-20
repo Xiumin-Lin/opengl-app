@@ -4,8 +4,8 @@
 
 #include "include/Application.h"
 
-const int WIDTH = 800;
-const int HEIGHT = 800;
+const int WIDTH = 500;
+const int HEIGHT = 500;
 
 int main(void)
 {
@@ -32,8 +32,23 @@ int main(void)
         return -1;
     }
 
+    // Activer le culling des faces
+    glEnable(GL_CULL_FACE);
+
+    // Définir l'ordre des vertices pour les faces avant
+    // - GL_CCW pour le sens anti horaire (par défaut)
+    // - GL_CW pour le sens horaire
+    // glFrontFace(GL_CW);
+
+    // Spécifier les faces à cacher
+    // - GL_FRONT: les faces-avants
+    // - GL_BACK: les faces-arrières (par défaut)
+    // - GL_FRONT_AND_BACK: toutes les faces
+    // glCullFace(GL_BACK);
+
     Application app;
     app.Initialize(window, WIDTH, HEIGHT, "./assets/cube.obj");
+    
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {

@@ -96,22 +96,24 @@ void Application::Render()
 
     // Camera View -----------------------------------------------------
     m_viewMatrix.loadIdentity();
-    m_viewMatrix.translate(0.0f, 0.0f, -3.f);
+    m_viewMatrix.translate(0.0f, 0.0f, -4.f);
 
     // Model Transformation -------------------------------------
     float time = static_cast<float>(glfwGetTime());
-    // float move = std::sin(static_cast<float>(time)) * 100.0f;
     float angle = static_cast<float>(time) * 40.0f;
+    // float move = std::sin(static_cast<float>(time));
 
     m_modelMatrix.loadIdentity();
-    m_modelMatrix.scale(0.5f, 0.5f, 0.5f);
-    // m_modelMatrix.translate(100.0f, 0.0f, 0.0f);
+    // m_modelMatrix.scale(move, move, 1);
+    // m_modelMatrix.translate(move, 0.0f, 0.0f);
     m_modelMatrix.rotateY(angle);
 
     // Send uniforms --------------------------------------------
     glUniformMatrix4fv(glGetUniformLocation(m_basicProgram.GetProgram(), "u_Model"), 1, GL_FALSE, m_modelMatrix.data);
     glUniformMatrix4fv(glGetUniformLocation(m_basicProgram.GetProgram(), "u_View"), 1, GL_FALSE, m_viewMatrix.data);
     glUniformMatrix4fv(glGetUniformLocation(m_basicProgram.GetProgram(), "u_Projection"), 1, GL_FALSE, m_projectionMatrix.data);
+
+    glUniform2f(glGetUniformLocation(m_basicProgram.GetProgram(), "u_Dimensions"), float(m_windowWidth), float(m_windowHeight));
 
     // Draw -----------------------------------------------------
     glBindVertexArray(VAO);
@@ -143,6 +145,8 @@ void Application::ResizeWindow(int width, int height)
     m_windowHeight = height;
 
     // Recalculer la matrice de projection
+    // PERPECTIVE
     m_projectionMatrix = Mat4::perspective(45.0f, float(m_windowWidth) / float(m_windowHeight), 0.1f, 100.0f);
+    // ORTHO GENERIQUE
     // m_projectionMatrix = Mat4::ortho(0.0f, float(m_windowWidth), float(m_windowHeight), 0.0f, -1.0f, 1.0f);
 }

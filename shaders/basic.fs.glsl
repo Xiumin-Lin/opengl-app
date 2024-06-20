@@ -1,6 +1,6 @@
 #version 120
 
-uniform float u_Time;
+uniform vec2 u_Dimensions; // dimensions de la fenêtre
 
 // un FS doit toujours ecrire dans 
 // gl_FragColor qui est un vec4
@@ -10,9 +10,18 @@ varying vec3 v_Normal;
 varying vec2 v_TexCoords;
 
 void main() {
-    // Créez une couleur simple basée sur la valeur absolue des normales.
-    vec3 color = abs(v_Normal);
+    // Calculez une couleur de base à partir des valeurs absolues des normales.
+    vec3 baseColor = abs(v_Normal);
 
-    // Utilisez les normales comme couleur de sortie pour visualiser les orientations des surfaces.
-    gl_FragColor = vec4(color, 1.0);
+    // Calcul des coordonnées normalisées sur l'écran.
+    vec2 normalizedCoords = gl_FragCoord.xy / u_Dimensions;
+
+    // Créez un gradient qui s'assombrit en fonction des positions x et y.
+    float gradient = 0.7 + 0.3 * (1.0 - normalizedCoords.x) * (1.0 - normalizedCoords.y);
+
+    // Appliquez le gradient à la couleur de base.
+    vec3 gradientColor = baseColor * gradient;
+
+    // Définissez la couleur de sortie.
+    gl_FragColor = vec4(gradientColor, 1.0);
 }
