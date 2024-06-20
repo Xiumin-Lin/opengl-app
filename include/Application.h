@@ -25,7 +25,9 @@ private:
 
     GLShader m_basicProgram;
     std::vector<Mesh> m_meshes;
-    Mat4 m_modelMatrix, m_viewMatrix, m_projectionMatrix;
+    Mat4 m_worldMatrix, m_viewMatrix, m_projectionMatrix;
+    
+    GLuint textureID;
 };
 
 #endif

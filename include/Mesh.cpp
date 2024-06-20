@@ -5,19 +5,29 @@ Mesh Mesh::GenereTriangle() {
     Mesh triangleMesh;
     triangleMesh.vertexCount = 3;
 
-    Vertex v1 = {{-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}};
-    Vertex v2 = {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}};
-    Vertex v3 = {{0.0f, 0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}};
+    Vertex v1 = {{-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}};
+    Vertex v2 = {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}};
+    Vertex v3 = {{0.0f, 0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.5f, 1.0f}};
 
-    triangleMesh.vertices.push_back(v1);
-    triangleMesh.vertices.push_back(v2);
-    triangleMesh.vertices.push_back(v3);
-
-    triangleMesh.indices.push_back(0);
-    triangleMesh.indices.push_back(1);
-    triangleMesh.indices.push_back(2);
+    triangleMesh.vertices = {v1, v2, v3};
+    triangleMesh.indices = {0, 1, 2};
 
     return triangleMesh;
+}
+
+Mesh Mesh::GenererRectangle() {
+    Mesh rectangleMesh;
+    rectangleMesh.vertexCount = 4;
+
+    Vertex v1 = {{-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}};
+    Vertex v2 = {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}};
+    Vertex v3 = {{0.5f, 0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f}};
+    Vertex v4 = {{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 0.0f}, {0.0f, 1.0f}};
+
+    rectangleMesh.vertices = {v1, v2, v3, v4};
+    rectangleMesh.indices = {0, 1, 2, 0, 2, 3};
+
+    return rectangleMesh;
 }
 
 void Mesh::GenerateGLBuffers() {
@@ -32,7 +42,7 @@ void Mesh::DeleteGLBuffers() {
     // glDeleteVertexArrays(1, &VAO);
 }
 
-void Mesh::SetLocation(int positionLocation, int normalLocation, int texcoordLocation) {
+void Mesh::SetAttribLocation(int positionLocation, int normalLocation, int texcoordLocation) {
     this->positionLocation = positionLocation;
     this->normalLocation = normalLocation;
     this->texcoordLocation = texcoordLocation;
@@ -43,7 +53,7 @@ void Mesh::SetLocation(int positionLocation, int normalLocation, int texcoordLoc
  * And setup the vertex attributes
  * DO NOT FORGET TO UNBIND THE VBO AND IBO AFTER CALLING THIS FUNCTION
  */
-void Mesh::ConfigRenderParameters() {        
+void Mesh::Draw() {        
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
         glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
 
@@ -62,5 +72,10 @@ void Mesh::ConfigRenderParameters() {
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(uint32_t), indices.data(), GL_STATIC_DRAW);
+
+        glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr);
+        
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 }

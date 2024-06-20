@@ -94,3 +94,13 @@ void Mat4::scale(float x, float y, float z)
     scale.data[15] = 1.0f;
     *this = *this * scale;
 }
+
+// void Mat4::invert()
+// {
+    
+// }
+
+// void Mat4::transpose()
+// {
+    
+// }

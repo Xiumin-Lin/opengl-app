@@ -36,22 +36,22 @@ int main(void)
     glEnable(GL_DEPTH_TEST);
 
     // Activer le culling des faces
-    // glEnable(GL_CULL_FACE);
+    glEnable(GL_CULL_FACE);
 
     // Définir l'ordre des vertices pour les faces avant
     // - GL_CCW pour le sens anti horaire (par défaut)
     // - GL_CW pour le sens horaire
-    // glFrontFace(GL_CW);
+    glFrontFace(GL_CCW);
 
     // Spécifier les faces à cacher
     // - GL_FRONT: les faces-avants
     // - GL_BACK: les faces-arrières (par défaut)
     // - GL_FRONT_AND_BACK: toutes les faces
-    // glCullFace(GL_FRONT_AND_BACK);
+    // glCullFace(GL_FRONT);
 
     // ---------------------------------------------------------------
     Application app;
-    app.Initialize(window, WIDTH, HEIGHT, "./assets/cube.obj");
+    app.Initialize(window, WIDTH, HEIGHT, "./assets/teapot.obj");
     
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))

@@ -26,6 +26,8 @@ public:
     void rotateY(float angle);
     void rotateZ(float angle);
     void scale(float x, float y, float z);
+    // void invert();
+    // void transpose();
 
     Mat4 operator*(const Mat4 &other) const
     {

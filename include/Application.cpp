@@ -1,6 +1,7 @@
 #include "Application.h"
 #include <iostream>
 #include "Utils.h"
+#include "../vendor/stb/stb_image.h"
 
 void window_resize_callback(GLFWwindow *window, int width, int height)
 {
@@ -31,20 +32,15 @@ void Application::Initialize(GLFWwindow *window, int width, int height, const st
 
     if (object_filename.empty())
     {
-        // LoadObject("./assets/cube.obj");
-        m_meshes.push_back(Mesh::GenereTriangle());
+        m_meshes.push_back(Mesh::GenererRectangle()); // default mesh
+    } else {
+        m_meshes = Utils::load_obj(object_filename.c_str());
     }
-    else
-    {
-        LoadObject(object_filename.c_str());
-        m_meshes.push_back(Mesh::GenereTriangle());
-    }
-
-    if (m_meshes.empty())
-    {
+    if (m_meshes.empty()) {
         std::cerr << "No mesh loaded" << std::endl;
         exit(1);
     }
+    std::cout << "Application Loaded " << m_meshes.size() << " meshes" << std::endl;
 
     // Comme VAO n'est pas disponible en OpenGL 2.1, on configure et lie en avamce les VBO et IBO
     // puis dans le render, on appelle ConfigRenderParameters pour configurer les attributs de vertex
@@ -54,8 +50,31 @@ void Application::Initialize(GLFWwindow *window, int width, int height, const st
     for (Mesh &mesh : m_meshes)
     {
         mesh.GenerateGLBuffers();
-        mesh.SetLocation(POSITION, NORMAL, TEX_COORD);
+        mesh.SetAttribLocation(POSITION, NORMAL, TEX_COORD);
     }
+
+    // Texture
+    int texWidth, texHeight, texChannels;
+    stbi_set_flip_vertically_on_load(true); // flip the texture vertically
+    unsigned char* texBuffer = stbi_load("./assets/brick.png", &texWidth, &texHeight, &texChannels, 3);
+    if (!texBuffer)
+    {
+        std::cerr << "Failed to load texture" << std::endl;
+        exit(1);
+    }
+
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texWidth, texHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, texBuffer);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        stbi_image_free(texBuffer);
+    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void Application::Render()
@@ -71,35 +90,40 @@ void Application::Render()
 
     // Camera View -----------------------------------------------------
     m_viewMatrix.loadIdentity();
-    m_viewMatrix.translate(0.0f, 0.0f, -4.f);
+    m_viewMatrix.translate(0.0f, 0.0f, -40.f);
 
     // Model Transformation -------------------------------------
     float time = static_cast<float>(glfwGetTime());
-    float angle = static_cast<float>(time) * 40.0f;
+    float angle = static_cast<float>(time) * 20.0f;
     // float move = std::sin(static_cast<float>(time));
 
-    m_modelMatrix.loadIdentity();
-    // m_modelMatrix.scale(move, move, 1);
-    // m_modelMatrix.translate(move, 0.0f, 0.0f);
-    m_modelMatrix.rotateY(angle);
+    // World Matrix = Translate * Rotate * Scale (dans cet ordre)
+    m_worldMatrix.loadIdentity();
+    // -------------- Scale ------------------
+    // m_worldMatrix.scale(move, 1, 1);
+    // -------------- Rotate -----------------
+    m_worldMatrix.rotateY(angle);
+    m_worldMatrix.rotateX(angle);
+    // -------------- Translate --------------
+    // m_worldMatrix.translate(move, 0.0f, 0.0f);
 
     // Send uniforms --------------------------------------------
-    glUniformMatrix4fv(glGetUniformLocation(m_basicProgram.GetProgram(), "u_Model"), 1, GL_FALSE, m_modelMatrix.data);
+    glUniformMatrix4fv(glGetUniformLocation(m_basicProgram.GetProgram(), "u_World"), 1, GL_FALSE, m_worldMatrix.data);
     glUniformMatrix4fv(glGetUniformLocation(m_basicProgram.GetProgram(), "u_View"), 1, GL_FALSE, m_viewMatrix.data);
     glUniformMatrix4fv(glGetUniformLocation(m_basicProgram.GetProgram(), "u_Projection"), 1, GL_FALSE, m_projectionMatrix.data);
 
     glUniform2f(glGetUniformLocation(m_basicProgram.GetProgram(), "u_Dimensions"), float(m_windowWidth), float(m_windowHeight));
 
+
+    // Texture ---------------------------------------------------
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glUniform1i(glGetUniformLocation(m_basicProgram.GetProgram(), "u_Texture"), 0);
+
     // Draw -----------------------------------------------------
     for (Mesh &mesh : m_meshes)
     {
-        // VBO and IBO are binded in ConfigRenderParameters
-        mesh.ConfigRenderParameters();
-
-        glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
-        
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+        mesh.Draw();
     }
 
     // Il on suppose que la phase d'echange des buffers front et back
@@ -109,16 +133,9 @@ void Application::Render()
 void Application::Terminate()
 {
     for (Mesh &mesh : m_meshes)
-    {
         mesh.DeleteGLBuffers();
-    }
+    glDeleteTextures(1, &textureID);
     m_basicProgram.Destroy();
-}
-
-void Application::LoadObject(const char *filename)
-{
-    m_meshes = Utils::load_obj(filename);
-    std::cout << "Application Loaded " << m_meshes.size() << " meshes" << std::endl;
 }
 
 void Application::ResizeWindow(int width, int height)
@@ -129,6 +146,8 @@ void Application::ResizeWindow(int width, int height)
     // Recalculer la matrice de projection
     // PERPECTIVE
     m_projectionMatrix = Mat4::perspective(45.0f, float(m_windowWidth) / float(m_windowHeight), 0.1f, 100.0f);
-    // ORTHO GENERIQUE
-    // m_projectionMatrix = Mat4::ortho(0.0f, float(m_windowWidth), float(m_windowHeight), 0.0f, -1.0f, 1.0f);
+    // ORTHO
+    // float right = 10 / 2.0f; // float(m_windowWidth)
+    // float top = 10 / 2.0f;   // float(m_windowHeight)
+    // m_projectionMatrix = Mat4::ortho(-right, right, -top, top, -10.0f, 10.0f);
 }
