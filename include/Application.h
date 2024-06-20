@@ -8,10 +8,11 @@
 
 #include "Vertex.h"
 #include "Mesh.h"
+#include "Mat4.h"
 
 class Application {
 public:
-    void Initialize(int width, int height);
+    void Initialize(int width, int height, const std::string &object_filename = "");
     void LoadObject(const char *filename);
     void Render();
     void Terminate();
@@ -21,6 +22,7 @@ private:
     GLuint VBO, IBO, VAO;
     int m_width, m_height;
     std::vector<Mesh> m_meshes;
+    Mat4 m_meshMatrix;
 };
 
 #endif

@@ -33,8 +33,7 @@ int main(void)
     }
 
     Application app;
-    app.Initialize(WIDTH, HEIGHT);
-    app.LoadObject("assets/cube.obj");
+    app.Initialize(WIDTH, HEIGHT, "./assets/cube.obj");
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
