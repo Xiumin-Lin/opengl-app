@@ -19,6 +19,7 @@ public:
     Mat4();
 
     void loadIdentity();
+    static Mat4 ortho(float left, float right, float bottom, float top, float znear, float zfar);
     static Mat4 perspective(float fov, float aspect, float znear, float zfar);
     void translate(float x, float y, float z);
     void rotateX(float angle);

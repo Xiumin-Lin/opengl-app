@@ -2,12 +2,23 @@
 #include <iostream>
 #include "Utils.h"
 
-int Application::s_windowWidth = 600;
-int Application::s_windowHeight = 600;
-
-void Application::Initialize(int width, int height, const std::string &object_filename)
+void window_resize_callback(GLFWwindow *window, int width, int height)
 {
-    Application::ResizeWindow(width, height);
+    // std::cout << "Resized to " << width << "x" << height << std::endl;
+    Application* app = static_cast<Application *>(glfwGetWindowUserPointer(window));
+    if (app != nullptr)
+    {
+        app->ResizeWindow(width, height);
+    }
+}
+
+void Application::Initialize(GLFWwindow *window, int width, int height, const std::string &object_filename)
+{
+    m_window = window;
+    glfwSetWindowUserPointer(window, this); // Stocker le pointeur vers l'instance de la classe Application
+    ResizeWindow(width, height);
+    glfwSetFramebufferSizeCallback(m_window, window_resize_callback);
+
     m_basicProgram.LoadVertexShader("./shaders/basic.vs.glsl");
     m_basicProgram.LoadFragmentShader("./shaders/basic.fs.glsl");
     m_basicProgram.Create();
@@ -49,54 +60,62 @@ void Application::Initialize(int width, int height, const std::string &object_fi
     glBindVertexArray(VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        // TODO: seulement un mesh pour l'instant
-        glBufferData(GL_ARRAY_BUFFER, m_meshes[0].vertexCount * sizeof(Vertex), m_meshes[0].vertices.data(), GL_STATIC_DRAW);
+    // TODO: seulement un mesh pour l'instant
+    glBufferData(GL_ARRAY_BUFFER, m_meshes[0].vertexCount * sizeof(Vertex), m_meshes[0].vertices.data(), GL_STATIC_DRAW);
 
-        const int POSITION = glGetAttribLocation(m_basicProgram.GetProgram(), "a_Position");
-        glEnableVertexAttribArray(POSITION);
-        glVertexAttribPointer(POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
+    const int POSITION = glGetAttribLocation(m_basicProgram.GetProgram(), "a_Position");
+    glEnableVertexAttribArray(POSITION);
+    glVertexAttribPointer(POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, position));
 
-        const int NORMAL = glGetAttribLocation(m_basicProgram.GetProgram(), "a_Normal");
-        if (NORMAL >= 0) {
-            glEnableVertexAttribArray(NORMAL);
-            glVertexAttribPointer(NORMAL, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
-        }
+    const int NORMAL = glGetAttribLocation(m_basicProgram.GetProgram(), "a_Normal");
+    if (NORMAL >= 0)
+    {
+        glEnableVertexAttribArray(NORMAL);
+        glVertexAttribPointer(NORMAL, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, normal));
+    }
 
-        const int TEX_COORD = glGetAttribLocation(m_basicProgram.GetProgram(), "a_TexCoords");
-        if (TEX_COORD >= 0) {
-            glEnableVertexAttribArray(TEX_COORD);
-            glVertexAttribPointer(TEX_COORD, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texcoords));
-        }
+    const int TEX_COORD = glGetAttribLocation(m_basicProgram.GetProgram(), "a_TexCoords");
+    if (TEX_COORD >= 0)
+    {
+        glEnableVertexAttribArray(TEX_COORD);
+        glVertexAttribPointer(TEX_COORD, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, texcoords));
+    }
     glBindVertexArray(0);
 }
 
 void Application::Render()
 {
-    glViewport(0, 0, s_windowWidth, s_windowHeight);
+    glViewport(0, 0, m_windowWidth, m_windowHeight);
     glClearColor(0.5f, 0.5f, 0.5f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     glUseProgram(m_basicProgram.GetProgram());
 
-    // Transformation -----------------------------------------------
+    // Projection -----------------------------------------------
+    // compute at each windows resize -> ResizeWindow(int width, int height)
+
+    // Camera View -----------------------------------------------------
+    m_viewMatrix.loadIdentity();
+    m_viewMatrix.translate(0.0f, 0.0f, -3.f);
+
+    // Model Transformation -------------------------------------
     float time = static_cast<float>(glfwGetTime());
-    // float move = std::sin(static_cast<float>(time)) * 0.5f;
-    float angle = static_cast<float>(time) * 50.0f;
+    // float move = std::sin(static_cast<float>(time)) * 100.0f;
+    float angle = static_cast<float>(time) * 40.0f;
 
-    // Mise à l'échelle, rotation, et translation
-    m_meshMatrix.loadIdentity();
-    // m_meshMatrix.translate(move, 0.0f, 0.0f);
-    // m_meshMatrix.translate(0.0f, 0.0f, -5.0f);
-    m_meshMatrix.scale(0.5f, 0.5f, 0.5f);
-    m_meshMatrix.rotateZ(angle);
+    m_modelMatrix.loadIdentity();
+    m_modelMatrix.scale(0.5f, 0.5f, 0.5f);
+    // m_modelMatrix.translate(100.0f, 0.0f, 0.0f);
+    m_modelMatrix.rotateY(angle);
 
-    GLint modelLocation = glGetUniformLocation(m_basicProgram.GetProgram(), "u_Model");
-    glUniformMatrix4fv(modelLocation, 1, GL_FALSE, m_meshMatrix.data);
+    // Send uniforms --------------------------------------------
+    glUniformMatrix4fv(glGetUniformLocation(m_basicProgram.GetProgram(), "u_Model"), 1, GL_FALSE, m_modelMatrix.data);
+    glUniformMatrix4fv(glGetUniformLocation(m_basicProgram.GetProgram(), "u_View"), 1, GL_FALSE, m_viewMatrix.data);
+    glUniformMatrix4fv(glGetUniformLocation(m_basicProgram.GetProgram(), "u_Projection"), 1, GL_FALSE, m_projectionMatrix.data);
 
-    // --------------------------------------------------------------
-
+    // Draw -----------------------------------------------------
     glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, m_meshes[0].vertexCount);
+    glDrawArrays(GL_TRIANGLES, 0, m_meshes[0].vertexCount);
     // glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, nullptr);
     glBindVertexArray(0);
 
@@ -120,6 +139,10 @@ void Application::LoadObject(const char *filename)
 
 void Application::ResizeWindow(int width, int height)
 {
-    Application::s_windowWidth = width;
-    Application::s_windowHeight = height;
+    m_windowWidth = width;
+    m_windowHeight = height;
+
+    // Recalculer la matrice de projection
+    m_projectionMatrix = Mat4::perspective(45.0f, float(m_windowWidth) / float(m_windowHeight), 0.1f, 100.0f);
+    // m_projectionMatrix = Mat4::ortho(0.0f, float(m_windowWidth), float(m_windowHeight), 0.0f, -1.0f, 1.0f);
 }

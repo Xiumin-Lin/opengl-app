@@ -7,12 +7,6 @@
 const int WIDTH = 800;
 const int HEIGHT = 800;
 
-void window_resize_callback(GLFWwindow* window, int width, int height)
-{
-    // std::cout << "Resized to " << width << "x" << height << std::endl;
-    Application::ResizeWindow(width, height);
-}
-
 int main(void)
 {
     GLFWwindow *window;
@@ -39,8 +33,7 @@ int main(void)
     }
 
     Application app;
-    app.Initialize(WIDTH, HEIGHT, "./assets/cube.obj");
-    glfwSetFramebufferSizeCallback(window, window_resize_callback);
+    app.Initialize(window, WIDTH, HEIGHT, "./assets/cube.obj");
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {

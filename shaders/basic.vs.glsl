@@ -24,7 +24,7 @@ uniform mat4 u_Projection;
 
 void main() {
     // Transformez la position du vertex.
-    gl_Position = /*u_Projection * u_View * */ u_Model * vec4(a_Position, 1.0);
+    gl_Position = u_Projection * u_View * u_Model * vec4(a_Position, 1.0);
 
     // Passez les normales et les coordonnées de texture au fragment shader.
     v_Normal = a_Normal;

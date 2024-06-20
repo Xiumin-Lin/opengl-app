@@ -10,20 +10,23 @@
 #include "Mesh.h"
 #include "Mat4.h"
 
-class Application {
+class Application
+{
 public:
-    void Initialize(int width, int height, const std::string &object_filename = "");
+    void Initialize(GLFWwindow *window, int width, int height, const std::string &object_filename = "");
     void LoadObject(const char *filename);
     void Render();
     void Terminate();
-    static void ResizeWindow(int width, int height);
+    void ResizeWindow(int width, int height);
 
 private:
+    GLFWwindow *m_window;
+    int m_windowWidth, m_windowHeight;
+
     GLShader m_basicProgram;
     GLuint VBO, IBO, VAO;
     std::vector<Mesh> m_meshes;
-    Mat4 m_meshMatrix;
-    static int s_windowWidth, s_windowHeight;
+    Mat4 m_modelMatrix, m_viewMatrix, m_projectionMatrix;
 };
 
 #endif
