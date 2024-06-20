@@ -62,7 +62,7 @@ std::vector<Mesh> Utils::load_obj(const char *filename)
         size_t index_offset = 0;
         Mesh new_mesh;
         tinyobj::shape_t shape = shapes[s];
-        // std::cout << "\nShape " << shape.name << " (nb face: " << shape.mesh.num_face_vertices.size() << " & total indices: " << shape.mesh.indices.size() << ")" << std::endl;
+        std::cout << "\nShape " << shape.name << " (nb face: " << shape.mesh.num_face_vertices.size() << " & total indices: " << shape.mesh.indices.size() << ")" << std::endl;
         for (size_t f = 0; f < shape.mesh.num_face_vertices.size(); f++)
         {
             size_t nbVertices = size_t(shape.mesh.num_face_vertices[f]);

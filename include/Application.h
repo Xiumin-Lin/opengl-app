@@ -24,7 +24,6 @@ private:
     int m_windowWidth, m_windowHeight;
 
     GLShader m_basicProgram;
-    GLuint VBO, IBO, VAO;
     std::vector<Mesh> m_meshes;
     Mat4 m_modelMatrix, m_viewMatrix, m_projectionMatrix;
 };

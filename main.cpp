@@ -47,11 +47,11 @@ int main(void)
     // - GL_FRONT: les faces-avants
     // - GL_BACK: les faces-arrières (par défaut)
     // - GL_FRONT_AND_BACK: toutes les faces
-    // glCullFace(GL_BACK);
+    // glCullFace(GL_FRONT_AND_BACK);
 
     // ---------------------------------------------------------------
     Application app;
-    app.Initialize(window, WIDTH, HEIGHT, "./assets/humanoid_triangle.obj");
+    app.Initialize(window, WIDTH, HEIGHT, "./assets/cube.obj");
     
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))

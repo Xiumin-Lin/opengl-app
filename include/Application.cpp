@@ -37,6 +37,7 @@ void Application::Initialize(GLFWwindow *window, int width, int height, const st
     else
     {
         LoadObject(object_filename.c_str());
+        m_meshes.push_back(Mesh::GenereTriangle());
     }
 
     if (m_meshes.empty())
@@ -45,38 +46,16 @@ void Application::Initialize(GLFWwindow *window, int width, int height, const st
         exit(1);
     }
 
-    // gen & bind VBO
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &IBO);
-    // gen & bind VAO
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    // TODO: seulement un mesh pour l'instant
-    glBufferData(GL_ARRAY_BUFFER, m_meshes[0].vertexCount * sizeof(Vertex), m_meshes[0].vertices.data(), GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_meshes[0].indices.size() * sizeof(uint32_t), m_meshes[0].indices.data(), GL_STATIC_DRAW);
-
+    // Comme VAO n'est pas disponible en OpenGL 2.1, on configure et lie en avamce les VBO et IBO
+    // puis dans le render, on appelle ConfigRenderParameters pour configurer les attributs de vertex
     const int POSITION = glGetAttribLocation(m_basicProgram.GetProgram(), "a_Position");
-    glEnableVertexAttribArray(POSITION);
-    glVertexAttribPointer(POSITION, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, position));
-
     const int NORMAL = glGetAttribLocation(m_basicProgram.GetProgram(), "a_Normal");
-    if (NORMAL >= 0)
-    {
-        glEnableVertexAttribArray(NORMAL);
-        glVertexAttribPointer(NORMAL, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, normal));
-    }
-
     const int TEX_COORD = glGetAttribLocation(m_basicProgram.GetProgram(), "a_TexCoords");
-    if (TEX_COORD >= 0)
+    for (Mesh &mesh : m_meshes)
     {
-        glEnableVertexAttribArray(TEX_COORD);
-        glVertexAttribPointer(TEX_COORD, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, texcoords));
+        mesh.GenerateGLBuffers();
+        mesh.SetLocation(POSITION, NORMAL, TEX_COORD);
     }
-    glBindVertexArray(0);
 }
 
 void Application::Render()
@@ -92,7 +71,7 @@ void Application::Render()
 
     // Camera View -----------------------------------------------------
     m_viewMatrix.loadIdentity();
-    m_viewMatrix.translate(0.0f, 0.0f, -40.f);
+    m_viewMatrix.translate(0.0f, 0.0f, -4.f);
 
     // Model Transformation -------------------------------------
     float time = static_cast<float>(glfwGetTime());
@@ -112,11 +91,16 @@ void Application::Render()
     glUniform2f(glGetUniformLocation(m_basicProgram.GetProgram(), "u_Dimensions"), float(m_windowWidth), float(m_windowHeight));
 
     // Draw -----------------------------------------------------
-    glBindVertexArray(VAO);
-    // glDrawArrays(GL_TRIANGLES, 0, m_meshes[0].vertexCount);
-    glDrawElements(GL_TRIANGLES, m_meshes[0].indices.size(), GL_UNSIGNED_INT, nullptr);
-    // glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, nullptr);
-    glBindVertexArray(0);
+    for (Mesh &mesh : m_meshes)
+    {
+        // VBO and IBO are binded in ConfigRenderParameters
+        mesh.ConfigRenderParameters();
+
+        glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
+        
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    }
 
     // Il on suppose que la phase d'echange des buffers front et back
     // le « swap buffers » est effectuee juste apres
@@ -124,9 +108,10 @@ void Application::Render()
 
 void Application::Terminate()
 {
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &IBO);
-    glDeleteVertexArrays(1, &VAO);
+    for (Mesh &mesh : m_meshes)
+    {
+        mesh.DeleteGLBuffers();
+    }
     m_basicProgram.Destroy();
 }
 
