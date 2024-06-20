@@ -51,7 +51,9 @@ std::vector<Mesh> Utils::load_obj(const char *filename)
                     vertex.position = vec3(vx, vy, vz);
                 }
                 else
-                    // std::cout << "\tVertex idx [-1]" << std::endl;
+                {
+                    std::cout << "\tVertex idx [-1]" << std::endl;
+                }
 
                 if (idx.normal_index >= 0)
                 {
@@ -63,7 +65,9 @@ std::vector<Mesh> Utils::load_obj(const char *filename)
                     vertex.normal = vec3(nx, ny, nz);
                 }
                 else
-                    // std::cout << "\tNormal idx [-1]" << std::endl;
+                {
+                    std::cout << "\tNormal idx [-1]" << std::endl;
+                }
 
                 if (idx.texcoord_index >= 0)
                 {
@@ -74,7 +78,9 @@ std::vector<Mesh> Utils::load_obj(const char *filename)
                     vertex.texcoords = vec2(tx, ty);
                 }
                 else
+                {
                     // std::cout << "\tTexcoord idx [-1]" << std::endl;
+                }
 
                 new_mesh.vertices.push_back(vertex);
                 new_mesh.vertexCount++;

@@ -75,7 +75,12 @@ void Application::Render()
 
     glUseProgram(m_basicProgram.GetProgram());
 
-    glUniform1f(glGetUniformLocation(m_basicProgram.GetProgram(), "u_Time"), static_cast<float>(glfwGetTime()));
+    float move = std::sin(static_cast<float>(glfwGetTime())) * 0.5f; // Oscille entre -0.5 et 0.5
+    m_meshMatrix.loadIdentity();
+    m_meshMatrix.translate(move, 0.0f, 0.0f); // Applique la translation
+
+    GLint modelLocation = glGetUniformLocation(m_basicProgram.GetProgram(), "u_Model");
+    glUniformMatrix4fv(modelLocation, 1, GL_FALSE, m_meshMatrix.data);
 
     glBindVertexArray(VAO);
         glDrawArrays(GL_TRIANGLES, 0, m_meshes[0].vertexCount);

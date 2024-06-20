@@ -1,30 +1,32 @@
 #version 120
-
 // un VS doit toujours ecrire dans
 // gl_Position qui est un vec4
 
 // attribute fait le lien avec
 // glVertexAttrib ou glVertexAttribPointer
-attribute vec2 a_Position;
-attribute vec3 a_Color;
 
-// valeur constante durant le rendu de la primitive
-uniform float u_Time;
+// Attributs d'entrée du vertex shader.
+attribute vec3 a_Position;
+attribute vec3 a_Normal;
+attribute vec2 a_TexCoords;
 
 // varying fait le lien avec la variable
 // du meme nom et type dans le fragment shader
-varying vec3 v_Color;
+// Variables à passer au fragment shader.
+varying vec3 v_Normal;
+varying vec2 v_TexCoords;
 
-void main()
-{
-	vec2 pos = a_Position;
-    
-	// on ajoute une valeur periodique afin d'animer notre triangle
-	pos.x += sin(u_Time);
-	
-	// exemple de selection, on affecte pos.xy a v_Color.rb (eq. v_Color.xz)
-	v_Color = a_Color;
-	v_Color.rb = (pos + 1.0) / 2.0;
+// valeur constante durant le rendu de la primitive
+// Matrices de transformation.
+uniform mat4 u_Model;
+uniform mat4 u_View;
+uniform mat4 u_Projection;
 
-    gl_Position = vec4(pos, 0.0, 1.0);
+void main() {
+    // Transformez la position du vertex.
+    gl_Position = /*u_Projection * u_View * */ u_Model * vec4(a_Position, 1.0);
+
+    // Passez les normales et les coordonnées de texture au fragment shader.
+    v_Normal = a_Normal;
+    v_TexCoords = a_TexCoords;
 }
