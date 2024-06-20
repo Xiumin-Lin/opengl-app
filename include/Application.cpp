@@ -56,7 +56,7 @@ void Application::Initialize(GLFWwindow *window, int width, int height, const st
     // Texture
     int texWidth, texHeight, texChannels;
     stbi_set_flip_vertically_on_load(true); // flip the texture vertically
-    unsigned char* texBuffer = stbi_load("./assets/brick.png", &texWidth, &texHeight, &texChannels, 3);
+    unsigned char* texBuffer = stbi_load("./assets/brick.png", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
     if (!texBuffer)
     {
         std::cerr << "Failed to load texture" << std::endl;
@@ -65,12 +65,15 @@ void Application::Initialize(GLFWwindow *window, int width, int height, const st
 
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID);
+        // Filtrage bilineaire dans tous les cas (Minification et Magnification)
+        // les coordonnees de texture sont limitees a [0 ; 1[
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        // Si rien n’est specifie pour GL_TEXTURE_WRAP_* c’est GL_REPEAT par defaut
+        // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texWidth, texHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, texBuffer);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, texWidth, texHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, texBuffer);
         glGenerateMipmap(GL_TEXTURE_2D);
 
         stbi_image_free(texBuffer);
