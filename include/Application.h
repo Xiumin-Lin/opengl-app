@@ -16,13 +16,14 @@ public:
     void LoadObject(const char *filename);
     void Render();
     void Terminate();
+    static void ResizeWindow(int width, int height);
 
 private:
     GLShader m_basicProgram;
     GLuint VBO, IBO, VAO;
-    int m_width, m_height;
     std::vector<Mesh> m_meshes;
     Mat4 m_meshMatrix;
+    static int s_windowWidth, s_windowHeight;
 };
 
 #endif

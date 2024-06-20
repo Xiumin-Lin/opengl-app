@@ -2,10 +2,12 @@
 #include <iostream>
 #include "Utils.h"
 
+int Application::s_windowWidth = 800;
+int Application::s_windowHeight = 600;
+
 void Application::Initialize(int width, int height, const std::string &object_filename)
 {
-    m_width = width;
-    m_height = height;
+    Application::ResizeWindow(width, height);
     m_basicProgram.LoadVertexShader("./shaders/basic.vs.glsl");
     m_basicProgram.LoadFragmentShader("./shaders/basic.fs.glsl");
     m_basicProgram.Create();
@@ -47,6 +49,7 @@ void Application::Initialize(int width, int height, const std::string &object_fi
     glBindVertexArray(VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        // TODO: seulement un mesh pour l'instant
         glBufferData(GL_ARRAY_BUFFER, m_meshes[0].vertexCount * sizeof(Vertex), m_meshes[0].vertices.data(), GL_STATIC_DRAW);
 
         const int POSITION = glGetAttribLocation(m_basicProgram.GetProgram(), "a_Position");
@@ -69,18 +72,27 @@ void Application::Initialize(int width, int height, const std::string &object_fi
 
 void Application::Render()
 {
-    glViewport(0, 0, m_width, m_height);
+    glViewport(0, 0, s_windowWidth, s_windowHeight);
     glClearColor(0.5f, 0.5f, 0.5f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     glUseProgram(m_basicProgram.GetProgram());
 
-    float move = std::sin(static_cast<float>(glfwGetTime())) * 0.5f; // Oscille entre -0.5 et 0.5
+    // --------------------------------------------------------------
+
+    // Calculer la rotation et la translation basées sur le temps
+    float time = static_cast<float>(glfwGetTime());
+    // float move = std::sin(static_cast<float>(time)) * 0.5f; // Oscille entre -0.5 et 0.5
+    float angle = static_cast<float>(time) * 50.0f; // Rotation en degrés par seconde
+
     m_meshMatrix.loadIdentity();
-    m_meshMatrix.translate(move, 0.0f, 0.0f); // Applique la translation
+    // m_meshMatrix.translate(move, 0.0f, 0.0f);   // translation en X
+    m_meshMatrix.rotateZ(angle);                // rotation autour de l'axe Z
 
     GLint modelLocation = glGetUniformLocation(m_basicProgram.GetProgram(), "u_Model");
     glUniformMatrix4fv(modelLocation, 1, GL_FALSE, m_meshMatrix.data);
+
+    // --------------------------------------------------------------
 
     glBindVertexArray(VAO);
         glDrawArrays(GL_TRIANGLES, 0, m_meshes[0].vertexCount);
@@ -103,4 +115,10 @@ void Application::LoadObject(const char *filename)
 {
     m_meshes = Utils::load_obj(filename);
     std::cout << "Application Loaded " << m_meshes.size() << " meshes" << std::endl;
+}
+
+void Application::ResizeWindow(int width, int height)
+{
+    Application::s_windowWidth = width;
+    Application::s_windowHeight = height;
 }
