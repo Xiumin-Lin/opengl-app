@@ -5,7 +5,7 @@
 #include "include/Application.h"
 
 const int WIDTH = 800;
-const int HEIGHT = 600;
+const int HEIGHT = 800;
 
 void window_resize_callback(GLFWwindow* window, int width, int height)
 {
@@ -20,7 +20,7 @@ int main(void)
     if (!glfwInit()) return -1;
 
     /* Create a windowed mode window and its OpenGL context */
-    window = glfwCreateWindow(WIDTH, HEIGHT, "Exemple OpenGL 2.+", NULL, NULL);
+    window = glfwCreateWindow(WIDTH, HEIGHT, "APP OpenGL 2.1", NULL, NULL);
     if (!window)
     {
         glfwTerminate();

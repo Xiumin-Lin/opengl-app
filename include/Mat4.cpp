@@ -71,3 +71,13 @@ void Mat4::rotateZ(float angle)
     rotation.data[5] = c;
     *this = *this * rotation;
 }
+
+void Mat4::scale(float x, float y, float z)
+{
+    Mat4 scale;
+    scale.data[0] = x;
+    scale.data[5] = y;
+    scale.data[10] = z;
+    scale.data[15] = 1.0f;
+    *this = *this * scale;
+}

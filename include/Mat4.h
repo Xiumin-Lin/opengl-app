@@ -5,6 +5,7 @@ class Mat4
 {
 public:
     /**
+     * OpenGL est column-major
      * x, y & z sont les coordonnées de translation
      * w est la coordonnée homogène
      *    x      y     z      w
@@ -23,18 +24,20 @@ public:
     void rotateX(float angle);
     void rotateY(float angle);
     void rotateZ(float angle);
+    void scale(float x, float y, float z);
 
     Mat4 operator*(const Mat4 &other) const
     {
         Mat4 result;
-        for (int row = 0; row < 4; ++row)
+        for (int col = 0; col < 4; ++col)
         {
-            for (int col = 0; col < 4; ++col)
+            for (int row = 0; row < 4; ++row)
             {
-                result.data[col + row * 4] = 0.0f;
+                result.data[col * 4 + row] = 0.0f;
                 for (int k = 0; k < 4; ++k)
-                {
-                    result.data[col + row * 4] += data[k + row * 4] * other.data[col + k * 4];
+                { 
+                    // Produit scalaire de la row de `this` et de la col de `other`
+                    result.data[col * 4 + row] += data[k * 4 + row] * other.data[col * 4 + k];
                 }
             }
         }

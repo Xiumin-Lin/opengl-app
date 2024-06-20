@@ -2,7 +2,7 @@
 #include <iostream>
 #include "Utils.h"
 
-int Application::s_windowWidth = 800;
+int Application::s_windowWidth = 600;
 int Application::s_windowHeight = 600;
 
 void Application::Initialize(int width, int height, const std::string &object_filename)
@@ -78,16 +78,17 @@ void Application::Render()
 
     glUseProgram(m_basicProgram.GetProgram());
 
-    // --------------------------------------------------------------
-
-    // Calculer la rotation et la translation basées sur le temps
+    // Transformation -----------------------------------------------
     float time = static_cast<float>(glfwGetTime());
-    // float move = std::sin(static_cast<float>(time)) * 0.5f; // Oscille entre -0.5 et 0.5
-    float angle = static_cast<float>(time) * 50.0f; // Rotation en degrés par seconde
+    // float move = std::sin(static_cast<float>(time)) * 0.5f;
+    float angle = static_cast<float>(time) * 50.0f;
 
+    // Mise à l'échelle, rotation, et translation
     m_meshMatrix.loadIdentity();
-    // m_meshMatrix.translate(move, 0.0f, 0.0f);   // translation en X
-    m_meshMatrix.rotateZ(angle);                // rotation autour de l'axe Z
+    // m_meshMatrix.translate(move, 0.0f, 0.0f);
+    // m_meshMatrix.translate(0.0f, 0.0f, -5.0f);
+    m_meshMatrix.scale(0.5f, 0.5f, 0.5f);
+    m_meshMatrix.rotateZ(angle);
 
     GLint modelLocation = glGetUniformLocation(m_basicProgram.GetProgram(), "u_Model");
     glUniformMatrix4fv(modelLocation, 1, GL_FALSE, m_meshMatrix.data);
