@@ -55,6 +55,7 @@ void Application::Initialize(GLFWwindow *window, int width, int height, const st
 
     // gen & bind VBO
     glGenBuffers(1, &VBO);
+    glGenBuffers(1, &IBO);
     // gen & bind VAO
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
@@ -62,6 +63,9 @@ void Application::Initialize(GLFWwindow *window, int width, int height, const st
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     // TODO: seulement un mesh pour l'instant
     glBufferData(GL_ARRAY_BUFFER, m_meshes[0].vertexCount * sizeof(Vertex), m_meshes[0].vertices.data(), GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_meshes[0].indices.size() * sizeof(uint32_t), m_meshes[0].indices.data(), GL_STATIC_DRAW);
 
     const int POSITION = glGetAttribLocation(m_basicProgram.GetProgram(), "a_Position");
     glEnableVertexAttribArray(POSITION);
@@ -117,7 +121,8 @@ void Application::Render()
 
     // Draw -----------------------------------------------------
     glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, m_meshes[0].vertexCount);
+    // glDrawArrays(GL_TRIANGLES, 0, m_meshes[0].vertexCount);
+    glDrawElements(GL_TRIANGLES, m_meshes[0].indices.size(), GL_UNSIGNED_INT, nullptr);
     // glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, nullptr);
     glBindVertexArray(0);
 
