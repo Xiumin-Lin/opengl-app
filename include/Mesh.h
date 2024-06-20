@@ -9,8 +9,9 @@ struct Mesh {
     std::vector<Vertex> vertices;
     std::vector<uint32_t> indices;
     uint32_t vertexCount;
-
+    
     Mesh() : vertexCount(0) {}
+    static Mesh GenereTriangle();
 };
 
 #endif // MESH_H

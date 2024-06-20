@@ -36,7 +36,7 @@ int main(void)
     glEnable(GL_DEPTH_TEST);
 
     // Activer le culling des faces
-    glEnable(GL_CULL_FACE);
+    // glEnable(GL_CULL_FACE);
 
     // Définir l'ordre des vertices pour les faces avant
     // - GL_CCW pour le sens anti horaire (par défaut)
@@ -51,7 +51,7 @@ int main(void)
 
     // ---------------------------------------------------------------
     Application app;
-    app.Initialize(window, WIDTH, HEIGHT, "./assets/cube.obj");
+    app.Initialize(window, WIDTH, HEIGHT, "./assets/humanoid_triangle.obj");
     
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))

@@ -5,7 +5,7 @@
 void window_resize_callback(GLFWwindow *window, int width, int height)
 {
     // std::cout << "Resized to " << width << "x" << height << std::endl;
-    Application* app = static_cast<Application *>(glfwGetWindowUserPointer(window));
+    Application *app = static_cast<Application *>(glfwGetWindowUserPointer(window));
     if (app != nullptr)
     {
         app->ResizeWindow(width, height);
@@ -31,26 +31,18 @@ void Application::Initialize(GLFWwindow *window, int width, int height, const st
 
     if (object_filename.empty())
     {
-        Mesh triangleMesh;
-        triangleMesh.vertexCount = 3;
-
-        Vertex v1 = {{-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}};
-        Vertex v2 = {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}};
-        Vertex v3 = {{0.0f, 0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}};
-        triangleMesh.vertices.push_back(v1);
-        triangleMesh.vertices.push_back(v2);
-        triangleMesh.vertices.push_back(v3);
-
-        m_meshes.push_back(triangleMesh);
+        // LoadObject("./assets/cube.obj");
+        m_meshes.push_back(Mesh::GenereTriangle());
     }
     else
     {
         LoadObject(object_filename.c_str());
-        if (m_meshes.empty())
-        {
-            std::cerr << "No mesh loaded" << std::endl;
-            exit(1);
-        }
+    }
+
+    if (m_meshes.empty())
+    {
+        std::cerr << "No mesh loaded" << std::endl;
+        exit(1);
     }
 
     // gen & bind VBO
@@ -100,7 +92,7 @@ void Application::Render()
 
     // Camera View -----------------------------------------------------
     m_viewMatrix.loadIdentity();
-    m_viewMatrix.translate(0.0f, 0.0f, -4.f);
+    m_viewMatrix.translate(0.0f, 0.0f, -40.f);
 
     // Model Transformation -------------------------------------
     float time = static_cast<float>(glfwGetTime());

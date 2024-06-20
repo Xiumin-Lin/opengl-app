@@ -104,9 +104,8 @@ std::vector<Mesh> Utils::load_obj(const char *filename)
                 }
                 else
                 {
-                    std::cerr << "Shape " << shape.name << " - " << "Face " << f << " - ";
-                    std::cerr << "\tNormal idx [-1]" << std::endl;
-                    exit(1);
+                    // std::cerr << "Shape " << shape.name << " - " << "Face " << f << " - ";
+                    // std::cerr << "Normal idx [-1]" << std::endl;
                 }
 
                 if (idx.texcoord_index >= 0)
@@ -118,7 +117,8 @@ std::vector<Mesh> Utils::load_obj(const char *filename)
                 }
                 else
                 {
-                    // std::err << "\tTexcoord idx [-1]" << std::endl;
+                    // std::cerr << "Shape " << shape.name << " - " << "Face " << f << " - ";
+                    // std::cerr << "Texcoord idx [-1]" << std::endl;
                 }
 
                 new_mesh.vertices.push_back(vertex);
