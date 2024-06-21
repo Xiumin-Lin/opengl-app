@@ -22,11 +22,13 @@ uniform mat4 u_World;
 uniform mat4 u_View;
 uniform mat4 u_Projection;
 
+uniform mat4 u_NormalMatrix;
+
 void main() {
     // Transformez la position du vertex.
     gl_Position = u_Projection * u_View * u_World * vec4(a_Position, 1.0);
 
     // Passez les normales et les coordonnées de texture au fragment shader.
-    v_Normal = a_Normal;
+    v_Normal = mat3(u_NormalMatrix) * a_Normal;
     v_TexCoords = a_TexCoords;
 }

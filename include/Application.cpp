@@ -80,15 +80,15 @@ void Application::Render()
     glViewport(0, 0, m_windowWidth, m_windowHeight);
     glClearColor(0.5f, 0.5f, 0.5f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    glUseProgram(m_basicProgram.GetProgram());
+    uint32_t program = m_basicProgram.GetProgram();
+    glUseProgram(program);
 
     // Projection -----------------------------------------------
     // compute at each windows resize -> ResizeWindow(int width, int height)
 
     // Camera View -----------------------------------------------------
     m_viewMatrix.loadIdentity();
-    m_viewMatrix.translate(0.0f, 0.0f, -4.f);
+    m_viewMatrix.translate(0.0f, 0.0f, -60.f);
 
     // Model Transformation -------------------------------------
     float time = static_cast<float>(glfwGetTime());
@@ -98,23 +98,34 @@ void Application::Render()
     // World Matrix = Translate * Rotate * Scale (dans cet ordre)
     m_worldMatrix.loadIdentity();
     // -------------- Scale ------------------
-    // m_worldMatrix.scale(move, 1, 1);
+    // m_worldMatrix.scale(move, move, move);
     // -------------- Rotate -----------------
     m_worldMatrix.rotateY(angle);
-    m_worldMatrix.rotateX(angle);
+    // m_worldMatrix.rotateX(angle);
     // -------------- Translate --------------
     // m_worldMatrix.translate(move, 0.0f, 0.0f);
 
     // Send uniforms Matrix -------------------------------------
-    glUniformMatrix4fv(glGetUniformLocation(m_basicProgram.GetProgram(), "u_World"), 1, GL_FALSE, m_worldMatrix.data);
-    glUniformMatrix4fv(glGetUniformLocation(m_basicProgram.GetProgram(), "u_View"), 1, GL_FALSE, m_viewMatrix.data);
-    glUniformMatrix4fv(glGetUniformLocation(m_basicProgram.GetProgram(), "u_Projection"), 1, GL_FALSE, m_projectionMatrix.data);
+    glUniformMatrix4fv(glGetUniformLocation(program, "u_World"), 1, GL_FALSE, m_worldMatrix.data);
+    glUniformMatrix4fv(glGetUniformLocation(program, "u_View"), 1, GL_FALSE, m_viewMatrix.data);
+    glUniformMatrix4fv(glGetUniformLocation(program, "u_Projection"), 1, GL_FALSE, m_projectionMatrix.data);
 
-    glUniform2f(glGetUniformLocation(m_basicProgram.GetProgram(), "u_Dimensions"), float(m_windowWidth), float(m_windowHeight));
+    glUniformMatrix4fv(glGetUniformLocation(program, "u_NormalMatrix"), 1, GL_FALSE, m_worldMatrix.data);
+
+    glUniform2f(glGetUniformLocation(program, "u_Dimensions"), float(m_windowWidth), float(m_windowHeight));
+
+    // Light -----------------------------------------------------
+    GLfloat lightColor[] = {1.0f, 1.0f, 1.0f};      // Blanc
+    GLfloat lightDirection[] = {0.0f, 1.0f, 1.0f}; // Direction de la lumière
+    GLfloat ambientColor[] = {0.2f, 0.2f, 0.2f};    // Lumière ambiante faible
+
+    glUniform3fv(glGetUniformLocation(program, "u_LightColor"), 1, lightColor);
+    glUniform3fv(glGetUniformLocation(program, "u_LightDirection"), 1, lightDirection);
+    glUniform3fv(glGetUniformLocation(program, "u_AmbientColor"), 1, ambientColor);
 
     // Texture ---------------------------------------------------
-    m_textures[0].Bind(GL_TEXTURE0, glGetUniformLocation(m_basicProgram.GetProgram(), "u_Texture"));
-    m_textures[1].Bind(GL_TEXTURE0, glGetUniformLocation(m_basicProgram.GetProgram(), "u_Texture1"), 1);
+    m_textures[0].Bind(GL_TEXTURE0, glGetUniformLocation(program, "u_Texture"));
+    m_textures[1].Bind(GL_TEXTURE0, glGetUniformLocation(program, "u_Texture1"), 1);
 
     // Draw ------------------------------------------------------
     for (std::unique_ptr<Mesh>& mesh_pt : m_meshes)
