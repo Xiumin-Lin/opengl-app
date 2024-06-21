@@ -3,9 +3,11 @@
 #include "Utils.h"
 #include "../vendor/stb/stb_image.h"
 
+using namespace std;
+
 void window_resize_callback(GLFWwindow *window, int width, int height)
 {
-    // std::cout << "Resized to " << width << "x" << height << std::endl;
+    // cout << "Resized to " << width << "x" << height << endl;
     Application *app = static_cast<Application *>(glfwGetWindowUserPointer(window));
     if (app != nullptr)
     {
@@ -13,7 +15,7 @@ void window_resize_callback(GLFWwindow *window, int width, int height)
     }
 }
 
-void Application::Initialize(GLFWwindow *window, int width, int height, const std::string &object_filename)
+void Application::Initialize(GLFWwindow *window, int width, int height, const string &object_filename)
 {
     m_window = window;
     glfwSetWindowUserPointer(window, this); // Stocker le pointeur vers l'instance de la classe Application
@@ -29,50 +31,48 @@ void Application::Initialize(GLFWwindow *window, int width, int height, const st
 #ifdef WIN32
     wglSwapIntervalEXT(1);
 #endif
+    // TEST VAO ============================================================
+    // int count = 5;
+    // GLuint* VAOs = new GLuint[count];
+    // glGenVertexArrays(count, VAOs);
+    // for (size_t i = 0; i < count; i++)
+    // {
+    //     cout << "VAO[" << i << "] = " << VAOs[i] << endl;
+    // }
+
+    /**
+     * NB: En OpenGL 2.1, VAO est disponible en activant l'option glewExperimental = GL_TRUE 
+     * Cependant, il est impossible d'utiliser plusieurs VAOs en même temps
+     * Les valeurs de VAOs apres glGenVertexArrays sont les memes et valent 0
+     * */
     // Meshes ================================================================
     if (object_filename.empty())
-    {
-        m_meshes.push_back(Mesh::GenererRectangle()); // default mesh
-    }
+        m_meshes.push_back(std::make_unique<Mesh>(Mesh::GenererRectangle())); // default mesh
     else
-    {
         m_meshes = Utils::load_obj(object_filename.c_str());
-    }
 
-    if (m_meshes.empty())
-    {
-        std::cerr << "No mesh loaded" << std::endl;
-        exit(1);
-    }
-    std::cout << "Application Loaded " << m_meshes.size() << " meshes" << std::endl;
+    if (m_meshes.empty()) { cerr << "No mesh loaded" << endl; exit(1); }
+    cout << "Application Loaded " << m_meshes.size() << " meshes" << endl;
 
     // Comme VAO n'est pas disponible en OpenGL 2.1, on configure et lie en avamce les VBO et IBO
     // puis dans le render, on appelle ConfigRenderParameters pour configurer les attributs de vertex
     const int POSITION = glGetAttribLocation(m_basicProgram.GetProgram(), "a_Position");
     const int NORMAL = glGetAttribLocation(m_basicProgram.GetProgram(), "a_Normal");
     const int TEX_COORD = glGetAttribLocation(m_basicProgram.GetProgram(), "a_TexCoords");
-    for (Mesh &mesh : m_meshes)
+    for (std::unique_ptr<Mesh>& mesh_pt : m_meshes)
     {
-        mesh.GenerateGLBuffers();
-        mesh.SetAttribLocation(POSITION, NORMAL, TEX_COORD);
+        mesh_pt->setAttribLocation(POSITION, NORMAL, TEX_COORD);
+        mesh_pt->generateGLBuffers();
     }
 
     // Texture ===============================================================
     m_textures = new Texture[2];
 
-    if (m_textures[0].Load("./assets/brick.png")) std::cout << "Texture 1 loaded" << std::endl;
-    else
-    {
-        std::cerr << "Texture 1 not loaded" << std::endl;
-        exit(1);
-    }
+    if (m_textures[0].Load("./assets/brick.png")) cout << "Texture 1 loaded" << endl;
+    else { cerr << "Texture 1 not loaded" << endl; exit(1); }
 
-    if (m_textures[1].Load("./assets/brick-specular.png")) std::cout << "Texture 2 loaded" << std::endl;
-    else
-    {
-        std::cerr << "Texture 2 not loaded" << std::endl;
-        exit(1);
-    }
+    if (m_textures[1].Load("./assets/brick-specular.png")) cout << "Texture 2 loaded" << endl;
+    else { cerr << "Texture 2 not loaded" << endl; exit(1); }
 }
 
 void Application::Render()
@@ -88,12 +88,12 @@ void Application::Render()
 
     // Camera View -----------------------------------------------------
     m_viewMatrix.loadIdentity();
-    m_viewMatrix.translate(0.0f, 0.0f, -40.f);
+    m_viewMatrix.translate(0.0f, 0.0f, -4.f);
 
     // Model Transformation -------------------------------------
     float time = static_cast<float>(glfwGetTime());
     float angle = static_cast<float>(time) * 20.0f;
-    // float move = std::sin(static_cast<float>(time));
+    // float move = sin(static_cast<float>(time));
 
     // World Matrix = Translate * Rotate * Scale (dans cet ordre)
     m_worldMatrix.loadIdentity();
@@ -117,9 +117,9 @@ void Application::Render()
     m_textures[1].Bind(GL_TEXTURE0, glGetUniformLocation(m_basicProgram.GetProgram(), "u_Texture1"), 1);
 
     // Draw ------------------------------------------------------
-    for (Mesh &mesh : m_meshes)
+    for (std::unique_ptr<Mesh>& mesh_pt : m_meshes)
     {
-        mesh.Draw();
+        mesh_pt->draw();
     }
     m_textures[0].Unbind();
     m_textures[1].Unbind();
@@ -129,8 +129,7 @@ void Application::Render()
 
 void Application::Terminate()
 {
-    for (Mesh &mesh : m_meshes)
-        mesh.DeleteGLBuffers();
+    m_meshes.clear();
     delete[] m_textures;
     m_basicProgram.Destroy();
 }

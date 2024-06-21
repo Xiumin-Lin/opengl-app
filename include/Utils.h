@@ -6,11 +6,12 @@
 
 #include <iostream>
 #include <vector>
+#include <memory>
 #include "Mesh.h"
 
 class Utils {
 public:
-    static std::vector<Mesh> load_obj(const char* filename);
+    static std::vector<std::unique_ptr<Mesh>>  load_obj(const char* filename);
 };
 
 #endif

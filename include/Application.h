@@ -4,6 +4,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <vector>
+#include <memory>
 #include "../common/GLShader.h"
 
 #include "Vertex.h"
@@ -24,7 +25,7 @@ private:
     int m_windowWidth, m_windowHeight;
 
     GLShader m_basicProgram;
-    std::vector<Mesh> m_meshes;
+    std::vector<std::unique_ptr<Mesh>> m_meshes;
     Mat4 m_worldMatrix, m_viewMatrix, m_projectionMatrix;
     
     Texture* m_textures;

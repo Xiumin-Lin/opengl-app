@@ -1,50 +1,101 @@
 #include "Mesh.h"
 #include <iostream>
+#include <cstring> // For memcpy
 
-Mesh Mesh::GenereTriangle() {
-    Mesh triangleMesh;
-    triangleMesh.vertexCount = 3;
-
-    Vertex v1 = {{-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}};
-    Vertex v2 = {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}};
-    Vertex v3 = {{0.0f, 0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {0.5f, 1.0f}};
-
-    triangleMesh.vertices = {v1, v2, v3};
-    triangleMesh.indices = {0, 1, 2};
-
-    return triangleMesh;
+Mesh::~Mesh()
+{
+    delete[] vertices;
+    delete[] indices;
+    deleteGLBuffers();
+}
+// Constructeur de déplacement pour std::move
+Mesh::Mesh(Mesh &&other) noexcept
+    : vertexCount(other.vertexCount), indexCount(other.indexCount), vertices(other.vertices), indices(other.indices),
+      VBO(other.VBO), IBO(other.IBO), positionLocation(other.positionLocation), normalLocation(other.normalLocation), texcoordLocation(other.texcoordLocation)
+{
+    other.vertices = nullptr;
+    other.indices = nullptr;
+    other.vertexCount = 0;
+    other.indexCount = 0;
+    other.VBO = 0;
+    other.IBO = 0;
 }
 
-Mesh Mesh::GenererRectangle() {
-    Mesh rectangleMesh;
-    rectangleMesh.vertexCount = 4;
+// Opérateur d'affectation de déplacement pour std::move
+Mesh &Mesh::operator=(Mesh &&other) noexcept
+{
+    if (this != &other)
+    {
+        delete[] vertices;
+        delete[] indices;
+        deleteGLBuffers();
 
-    Vertex v1 = {{-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}};
-    Vertex v2 = {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}};
-    Vertex v3 = {{0.5f, 0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f}};
-    Vertex v4 = {{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 0.0f}, {0.0f, 1.0f}};
+        vertices = other.vertices;
+        indices = other.indices;
+        vertexCount = other.vertexCount;
+        indexCount = other.indexCount;
+        VBO = other.VBO;
+        IBO = other.IBO;
+        positionLocation = other.positionLocation;
+        normalLocation = other.normalLocation;
+        texcoordLocation = other.texcoordLocation;
 
-    rectangleMesh.vertices = {v1, v2, v3, v4};
-    rectangleMesh.indices = {0, 1, 2, 0, 2, 3};
-
-    return rectangleMesh;
+        other.vertices = nullptr;
+        other.indices = nullptr;
+        other.vertexCount = 0;
+        other.indexCount = 0;
+        other.VBO = 0;
+        other.IBO = 0;
+    }
+    return *this;
 }
 
-void Mesh::GenerateGLBuffers() {
+void Mesh::allocateVertices(size_t count)
+{
+    delete[] vertices;
+    vertices = new Vertex[count];
+    vertexCount = count;
+}
+
+void Mesh::allocateIndices(size_t count)
+{
+    delete[] indices;
+    indices = new uint32_t[count];
+    indexCount = count;
+}
+
+void Mesh::generateGLBuffers()
+{
     glGenBuffers(1, &VBO);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, vertexCount * sizeof(Vertex), vertices, GL_STATIC_DRAW);
+
     glGenBuffers(1, &IBO);
-    // glGenVertexArrays(1, &VAO);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(uint32_t), indices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-void Mesh::DeleteGLBuffers() {
+void Mesh::deleteGLBuffers()
+{
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &IBO);
-    // glDeleteVertexArrays(1, &VAO);
+    VBO = 0;
+    IBO = 0;
 }
 
-void Mesh::SetAttribLocation(int positionLocation, int normalLocation, int texcoordLocation) {
+void Mesh::setAttribLocation(int positionLocation, int normalLocation, int texcoordLocation)
+{
+    if (positionLocation < 0)
+        std::cerr << "Invalid POSITION attribute location" << std::endl;
     this->positionLocation = positionLocation;
+    if (normalLocation < 0)
+        std::cerr << "Invalid NORMAL attribute location" << std::endl;
     this->normalLocation = normalLocation;
+    if (texcoordLocation < 0)
+        std::cerr << "Invalid TEX COORD attribute location" << std::endl;
     this->texcoordLocation = texcoordLocation;
 }
 
@@ -54,28 +105,60 @@ void Mesh::SetAttribLocation(int positionLocation, int normalLocation, int texco
  * NOT TO MYSELF: DO NOT BIND VBO AND IBO SEPARATELY FROM DRAWELEMENTS
  * OTHERWISE ONLY THE LAST VBO AND IBO OF MESHES WILL BE USED
  */
-void Mesh::Draw() {
+void Mesh::draw()
+{
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
-
         glEnableVertexAttribArray(positionLocation);
         glVertexAttribPointer(positionLocation, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, position));
 
-        if (normalLocation >= 0) {
-            glEnableVertexAttribArray(normalLocation);
-            glVertexAttribPointer(normalLocation, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, normal));
-        }
+        glEnableVertexAttribArray(normalLocation);
+        glVertexAttribPointer(normalLocation, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, normal));
 
-        if (texcoordLocation >= 0) {
-            glEnableVertexAttribArray(texcoordLocation);
-            glVertexAttribPointer(texcoordLocation, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, texcoords));
-        }
+        glEnableVertexAttribArray(texcoordLocation);
+        glVertexAttribPointer(texcoordLocation, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, texcoords));
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(uint32_t), indices.data(), GL_STATIC_DRAW);
+        glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
 
-        glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr);
+    glDisableVertexAttribArray(positionLocation);
+    glDisableVertexAttribArray(normalLocation);
+    glDisableVertexAttribArray(texcoordLocation);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+}
+
+// ===================================================================================
+
+Mesh Mesh::GenereTriangle()
+{
+    Mesh triangleMesh;
+
+    Vertex v1(vec3(-0.5f, -0.5f, 0.0f), vec3(0.0f, 0.0f, 1.0f), vec2(0.0f, 0.0f));
+    Vertex v2(vec3(0.5f, -0.5f, 0.0f), vec3(0.0f, 1.0f, 0.0f), vec2(1.0f, 0.0f));
+    Vertex v3(vec3(0.0f, 0.5f, 0.0f), vec3(1.0f, 0.0f, 0.0f), vec2(0.5f, 1.0f));
+
+    triangleMesh.vertices = new Vertex[3]{v1, v2, v3};
+    triangleMesh.vertexCount = 3;
+    triangleMesh.indices = new uint32_t[3]{0, 1, 2};
+    triangleMesh.indexCount = 3;
+
+    return triangleMesh;
+}
+
+Mesh Mesh::GenererRectangle()
+{
+    Mesh rectangleMesh;
+
+    Vertex v1(vec3(-0.5f, -0.5f, 0.0f), vec3(0.0f, 0.0f, 1.0f), vec2(0.0f, 0.0f));
+    Vertex v2(vec3(0.5f, -0.5f, 0.0f), vec3(0.0f, 1.0f, 0.0f), vec2(1.0f, 0.0f));
+    Vertex v3(vec3(0.5f, 0.5f, 0.0f), vec3(1.0f, 0.0f, 0.0f), vec2(1.0f, 1.0f));
+    Vertex v4(vec3(-0.5f, 0.5f, 0.0f), vec3(1.0f, 1.0f, 0.0f), vec2(0.0f, 1.0f));
+
+    rectangleMesh.vertices = new Vertex[4]{v1, v2, v3, v4};
+    rectangleMesh.vertexCount = 4;
+    rectangleMesh.indices = new uint32_t[6]{0, 1, 2, 0, 2, 3};
+    rectangleMesh.indexCount = 6;
+
+    return rectangleMesh;
 }
