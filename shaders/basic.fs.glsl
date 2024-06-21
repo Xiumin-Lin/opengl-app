@@ -1,13 +1,16 @@
 #version 120
+// un FS doit toujours ecrire dans gl_FragColor qui est un vec4
 
-uniform vec2 u_Dimensions; // dimensions de la fenetre
-
-// un FS doit toujours ecrire dans 
-// gl_FragColor qui est un vec4
-
-// Variables reçues du vertex shader.
+// Variables reçues du vertex shader ============================
 varying vec3 v_Normal;
 varying vec2 v_TexCoords;
+
+// Variables uniformes ==========================================
+uniform vec3 u_AmbientColor; // Lumiere ambiante globale
+uniform vec3 u_ViewPosition; // Position de la caméra
+
+uniform sampler2D u_Texture;
+// uniform sampler2D u_Texture1;
 
 struct Light {
     vec3 direction;     // I
@@ -25,12 +28,10 @@ struct Material {
 
 uniform Light u_Light;
 uniform Material u_Material;
-uniform vec3 u_AmbientColor; // Lumiere ambiante globale
-uniform vec3 u_ViewPosition; // Position de la caméra
 
-uniform sampler2D u_Texture;
-// uniform sampler2D u_Texture1;
+uniform vec2 u_Dimensions; // dimensions de la fenetre
 
+// Fonctions ===================================================
 vec3 ambient() {
     return u_Material.ambientColor * u_AmbientColor;
 }
@@ -57,11 +58,19 @@ vec3 diffuse(vec3 N, vec3 L) {
 * @return
 */
 vec3 specular(vec3 N, vec3 L, vec3 V) {
-    vec3 R = reflect(-L, N); // L doit être inversé car reflect s'attend à ce que I pointe vers la surface
-    float spec = pow(max(dot(R, V), 0.0), u_Material.shininess);
-    return spec * u_Material.specularColor * u_Light.specularColor;
+    // Phong model
+    // vec3 R = reflect(-L, N); // L doit être inversé car reflect s'attend à ce que N pointe vers la surface
+    // float spec = pow(max(dot(R, V), 0.0), u_Material.shininess);
+    // return spec * u_Material.specularColor * u_Light.specularColor;
+
+    // Blinn-Phong model
+    vec3 H = normalize(L + V);
+    float NdotH = max(dot(N, H), 0.0);
+    float specularComponent = pow(NdotH, u_Material.shininess);
+    return u_Light.specularColor * u_Material.specularColor * specularComponent;
 }
 
+// Main ========================================================
 void main() {
     // Basic color ---------------------------------------------------------
     // vec4 normalColor = vec4(abs(v_Normal), 1.0);

@@ -30,7 +30,7 @@ struct IndexHash
  * Load an OBJ file and return a vector of Mesh
  * Mesh indices are filled to allow IBO
  */
-vector<unique_ptr<Mesh>> Utils::load_obj(const char *filename)
+vector<unique_ptr<Mesh>> Utils::load_obj(const char *filename, const char *mtl_basepath)
 {
     // cout << "Try loading OBJ " << filename << endl;
     tinyobj::attrib_t attrib;
@@ -38,18 +38,13 @@ vector<unique_ptr<Mesh>> Utils::load_obj(const char *filename)
     vector<tinyobj::material_t> materials;
     string err;
 
-    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, filename))
+    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, filename, mtl_basepath))
     {
         cerr << "LoadOBJ failed: " << err << endl;
         return {}; // return empty vector
     }
 
-    // cout << "Total Vertices count : " << attrib.vertices.size() << endl;
-    // cout << "Total Normals count : " << attrib.normals.size() << endl;
-    // cout << "Total Texcoords count : " << attrib.texcoords.size() << endl;
-
-    // cout << "\nTotal Shapes count : " << shapes.size() << endl;
-    // cout << "Total Materials count : " << materials.size() << endl;
+    Utils::LogLoadObjInfo(attrib, shapes, materials);
 
     vector<unique_ptr<Mesh>> meshes;
     meshes.reserve(shapes.size());
@@ -137,17 +132,44 @@ vector<unique_ptr<Mesh>> Utils::load_obj(const char *filename)
         memcpy(new_mesh_pt->vertices, temp_vertices.data(), temp_vertices.size() * sizeof(Vertex));
         memcpy(new_mesh_pt->indices, temp_indices.data(), temp_indices.size() * sizeof(uint32_t));
 
-        // cout << "vertexCount : " << vertexCount << endl;
-        // cout << "new_mesh_pt->vertexCount : " << new_mesh_pt->vertexCount << endl;
-        // cout << "new_mesh_pt->indexCount : " << new_mesh_pt->indexCount << endl;
-        // for (size_t i = 0; i < new_mesh_pt->indexCount; i++)
-        // {
-        //     Vertex v = new_mesh_pt->vertices[new_mesh_pt->indices[i]];
-        //     cout << i << ": new_mesh_pt->vertices[" << new_mesh_pt->indices[i] << "] = x: " << v.position.x << " y: " << v.position.y << " z: " << v.position.z << " nx: " << v.normal.x << " ny: " << v.normal.y << " nz: " << v.normal.z << " tx: " << v.texcoords.x << " ty: " << v.texcoords.y << endl;
-        // }
+        // Utils::LogMeshInfo(new_mesh_pt, shape.name);
 
         meshes.push_back(std::move(new_mesh_pt));
     }
     // cout << "Success Loaded Shape count : " << meshes.size() << endl;
     return meshes;
+}
+
+void Utils::LogLoadObjInfo(const tinyobj::attrib_t &attrib, const vector<tinyobj::shape_t> &shapes, const vector<tinyobj::material_t> &materials)
+{
+    cout << "Attrib Info:" << endl;
+    cout << "  Total Vertices count : " << attrib.vertices.size() << endl;
+    cout << "  Total Normals count : " << attrib.normals.size() << endl;
+    cout << "  Total Texcoords count : " << attrib.texcoords.size() << endl;
+    cout << endl;
+    cout << "Total Shapes count : " << shapes.size() << endl;
+    cout << endl;
+    cout << "Total Materials count : " << materials.size() << endl;
+    for (size_t i = 0; i < materials.size(); i++)
+    {
+        tinyobj::material_t mat = materials[i];
+        std::cout << "Material " << i << " (" << mat.name << ")\n";
+        std::cout << "  Diffuse: " << mat.diffuse[0] << ", " << mat.diffuse[1] << ", " << mat.diffuse[2] << "\n";
+        std::cout << "  Specular: " << mat.specular[0] << ", " << mat.specular[1] << ", " << mat.specular[2] << "\n";
+        std::cout << "  Shininess: " << mat.shininess << "\n";
+    }
+}
+
+void Utils::LogMeshInfo(const unique_ptr<Mesh> &mesh, const string &name)
+{
+    cout << "Mesh Info (" << name << "):" << endl;
+    cout << "  Vertices count : " << mesh->vertexCount << endl;
+    cout << "  Indices count : " << mesh->indexCount << endl;
+    for (size_t i = 0; i < mesh->indexCount; i++)
+    {
+        Vertex v = mesh->vertices[mesh->indices[i]];
+        cout << "  " << i << ": mesh->vertices[" << mesh->indices[i] << "] = x: " << v.position.x << " y: " << v.position.y << " z: " << v.position.z;
+        cout << " nx: " << v.normal.x << " ny: " << v.normal.y << " nz: " << v.normal.z;
+        cout << " tx: " << v.texcoords.x << " ty: " << v.texcoords.y << endl;
+    }
 }

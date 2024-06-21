@@ -15,7 +15,7 @@
 class Application
 {
 public:
-    void Initialize(GLFWwindow *window, int width, int height, const std::string &object_filename = "");
+    void Initialize(GLFWwindow *window, int width, int height, const std::string &object_filename = "", const std::string &mtl_basepath = "./");
     void Render();
     void Terminate();
     void ResizeWindow(int width, int height);

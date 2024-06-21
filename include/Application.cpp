@@ -15,7 +15,7 @@ void window_resize_callback(GLFWwindow *window, int width, int height)
     }
 }
 
-void Application::Initialize(GLFWwindow *window, int width, int height, const string &object_filename)
+void Application::Initialize(GLFWwindow *window, int width, int height, const string &object_filename, const string &mtl_basepath)
 {
     m_window = window;
     glfwSetWindowUserPointer(window, this); // Stocker le pointeur vers l'instance de la classe Application
@@ -49,7 +49,7 @@ void Application::Initialize(GLFWwindow *window, int width, int height, const st
     if (object_filename.empty())
         m_meshes.push_back(std::make_unique<Mesh>(Mesh::GenererRectangle())); // default mesh
     else
-        m_meshes = Utils::load_obj(object_filename.c_str());
+        m_meshes = Utils::load_obj(object_filename.c_str(), mtl_basepath.c_str());
 
     if (m_meshes.empty()) { cerr << "No mesh loaded" << endl; exit(1); }
     cout << "Application Loaded " << m_meshes.size() << " meshes" << endl;
@@ -123,8 +123,8 @@ void Application::Render()
 
     GLfloat matAmbient[] = {0.0f, 0.0f, 1.0f};
     GLfloat matDiffuse[] = {0.4f, 0.6f, 0.8f}; // valeur RGB, indique quel pourcentage de RGB est réfléchi par le matériau
-    GLfloat matSpecular[] = {1.0f, 1.0f, 1.0f};
-    GLfloat shininess = 32.0f;
+    GLfloat matSpecular[] = {0.4f, 0.6f, 0.8f};
+    GLfloat shininess = 8.0f;
 
     glUniform3fv(glGetUniformLocation(program, "u_AmbientColor"), 1, ambientColor);
     glUniform3fv(glGetUniformLocation(program, "u_ViewPosition"), 1, cameraPos);
