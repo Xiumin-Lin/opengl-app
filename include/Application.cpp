@@ -88,7 +88,7 @@ void Application::Render()
 
     // Camera View ----------------------------------------------
     m_viewMatrix.loadIdentity();
-    m_viewMatrix.translate(0.0f, 0.0f, -60.f);
+    m_viewMatrix.translate(0.0f, 0.0f, -40.f);
 
     // Model  ---------------------------------------------------
     float time = static_cast<float>(glfwGetTime());
@@ -100,8 +100,8 @@ void Application::Render()
     // -------------- Scale ------------------
     // m_modelMatrix.scale(move, move, move);
     // -------------- Rotate -----------------
+    m_modelMatrix.rotateX(angle);
     m_modelMatrix.rotateY(angle);
-    // m_modelMatrix.rotateX(angle);
     // -------------- Translate --------------
     // m_modelMatrix.translate(move, 0.0f, 0.0f);
 
@@ -115,13 +115,15 @@ void Application::Render()
     glUniform2f(glGetUniformLocation(program, "u_Dimensions"), float(m_windowWidth), float(m_windowHeight));
 
     // Light -----------------------------------------------------
-    GLfloat lightColor[] = {1.0f, 1.0f, 1.0f};     // Blanc
-    GLfloat lightDirection[] = {0.0f, 1.0f, 1.0f}; // Direction de la lumière
-    GLfloat ambientColor[] = {0.1f, 0.1f, 0.1f};   // Lumière ambiante faible
+    GLfloat lightColor[] = {1.0f, 1.0f, 1.0f};      // Couleur de la source lumineuse
+    GLfloat lightDirection[] = {0.0f, 1.0f, 1.0f};  // Direction de la lumière
+    GLfloat ambientColor[] = {0.1f, 0.1f, 0.1f};    // Lumière ambiante faible
+    GLfloat diffuseMaterial[] = {1.0f, 1.0f, 1.0f}; // valeur RGB, indique quel pourcentage de RGB est réfléchi par le matériau
 
     glUniform3fv(glGetUniformLocation(program, "u_LightColor"), 1, lightColor);
     glUniform3fv(glGetUniformLocation(program, "u_LightDirection"), 1, lightDirection);
     glUniform3fv(glGetUniformLocation(program, "u_AmbientColor"), 1, ambientColor);
+    glUniform3fv(glGetUniformLocation(program, "u_DiffuseMaterial"), 1, diffuseMaterial);
 
     // Texture ---------------------------------------------------
     m_textures[0].Bind(GL_TEXTURE0, glGetUniformLocation(program, "u_Texture"));
