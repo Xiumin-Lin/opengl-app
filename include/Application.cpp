@@ -119,11 +119,16 @@ void Application::Render()
     GLfloat lightDirection[] = {0.0f, 1.0f, 1.0f};  // Direction de la lumière
     GLfloat ambientColor[] = {0.1f, 0.1f, 0.1f};    // Lumière ambiante faible
     GLfloat diffuseMaterial[] = {1.0f, 1.0f, 1.0f}; // valeur RGB, indique quel pourcentage de RGB est réfléchi par le matériau
+    GLfloat cameraPos[] = {m_viewMatrix.data[12], m_viewMatrix.data[13], m_viewMatrix.data[14]};
+    GLfloat shininess = 32.0f;
 
     glUniform3fv(glGetUniformLocation(program, "u_LightColor"), 1, lightColor);
     glUniform3fv(glGetUniformLocation(program, "u_LightDirection"), 1, lightDirection);
     glUniform3fv(glGetUniformLocation(program, "u_AmbientColor"), 1, ambientColor);
     glUniform3fv(glGetUniformLocation(program, "u_DiffuseMaterial"), 1, diffuseMaterial);
+
+    glUniform3fv(glGetUniformLocation(program, "u_ViewPosition"), 1, cameraPos);
+    glUniform1f(glGetUniformLocation(program, "u_Shininess"), shininess);
 
     // Texture ---------------------------------------------------
     m_textures[0].Bind(GL_TEXTURE0, glGetUniformLocation(program, "u_Texture"));
