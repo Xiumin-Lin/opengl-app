@@ -27,7 +27,7 @@ private:
     std::vector<Mesh> m_meshes;
     Mat4 m_worldMatrix, m_viewMatrix, m_projectionMatrix;
     
-    Texture m_texture;
+    Texture* m_textures;
 };
 
 #endif

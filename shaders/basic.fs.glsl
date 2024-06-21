@@ -10,6 +10,7 @@ varying vec3 v_Normal;
 varying vec2 v_TexCoords;
 
 uniform sampler2D u_Texture;
+uniform sampler2D u_Texture1;
 
 void main() {
     // Basic color ---------------------------------------------------------
@@ -17,8 +18,9 @@ void main() {
     // gl_FragColor = vec4(abs(v_Normal), 1.0);
 
     // TEXTURE -------------------------------------------------------------
-    vec4 texColor = texture2D(u_Texture, v_TexCoords) * normalColor;
-    gl_FragColor = texColor;
+    vec4 texColor = texture2D(u_Texture, v_TexCoords);
+    vec4 texColor1 = texture2D(u_Texture1, v_TexCoords);
+    gl_FragColor = mix(texColor, texColor1, 0.5) * normalColor;
 
     // GRADIENT COLOR -------------------------------------------------------
     // Calculez une couleur de base à partir des valeurs absolues des normales.

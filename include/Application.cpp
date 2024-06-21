@@ -57,14 +57,20 @@ void Application::Initialize(GLFWwindow *window, int width, int height, const st
         mesh.SetAttribLocation(POSITION, NORMAL, TEX_COORD);
     }
 
-    // Texture ================================================================
-    if (m_texture.Load("./assets/brick.png"))
-    {
-        std::cout << "Texture loaded" << std::endl;
-    }
+    // Texture ===============================================================
+    m_textures = new Texture[2];
+
+    if (m_textures[0].Load("./assets/brick.png")) std::cout << "Texture 1 loaded" << std::endl;
     else
     {
-        std::cerr << "Texture not loaded" << std::endl;
+        std::cerr << "Texture 1 not loaded" << std::endl;
+        exit(1);
+    }
+
+    if (m_textures[1].Load("./assets/brick-specular.png")) std::cout << "Texture 2 loaded" << std::endl;
+    else
+    {
+        std::cerr << "Texture 2 not loaded" << std::endl;
         exit(1);
     }
 }
@@ -107,14 +113,16 @@ void Application::Render()
     glUniform2f(glGetUniformLocation(m_basicProgram.GetProgram(), "u_Dimensions"), float(m_windowWidth), float(m_windowHeight));
 
     // Texture ---------------------------------------------------
-    m_texture.Bind(GL_TEXTURE0, glGetUniformLocation(m_basicProgram.GetProgram(), "u_Texture"));
+    m_textures[0].Bind(GL_TEXTURE0, glGetUniformLocation(m_basicProgram.GetProgram(), "u_Texture"));
+    m_textures[1].Bind(GL_TEXTURE0, glGetUniformLocation(m_basicProgram.GetProgram(), "u_Texture1"), 1);
 
     // Draw ------------------------------------------------------
     for (Mesh &mesh : m_meshes)
     {
         mesh.Draw();
     }
-    m_texture.Unbind();
+    m_textures[0].Unbind();
+    m_textures[1].Unbind();
     // Il on suppose que la phase d'echange des buffers front et back
     // le « swap buffers » est effectuee juste apres
 }
@@ -123,7 +131,7 @@ void Application::Terminate()
 {
     for (Mesh &mesh : m_meshes)
         mesh.DeleteGLBuffers();
-    m_texture.DeleteTexture();
+    delete[] m_textures;
     m_basicProgram.Destroy();
 }
 
