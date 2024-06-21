@@ -32,6 +32,7 @@ struct IndexHash
  */
 vector<unique_ptr<Mesh>> Utils::load_obj(const char *filename, const char *mtl_basepath)
 {
+    // CHARGEMENT DE L'OBJ ===================================================
     // cout << "Try loading OBJ " << filename << endl;
     tinyobj::attrib_t attrib;
     vector<tinyobj::shape_t> shapes;
@@ -46,6 +47,7 @@ vector<unique_ptr<Mesh>> Utils::load_obj(const char *filename, const char *mtl_b
 
     Utils::LogLoadObjInfo(attrib, shapes, materials);
 
+    // CREATIONS DES MESH ===================================================
     vector<unique_ptr<Mesh>> meshes;
     meshes.reserve(shapes.size());
     unordered_map<IndexTuple, int, IndexHash> index_map;
@@ -153,10 +155,20 @@ void Utils::LogLoadObjInfo(const tinyobj::attrib_t &attrib, const vector<tinyobj
     for (size_t i = 0; i < materials.size(); i++)
     {
         tinyobj::material_t mat = materials[i];
-        std::cout << "Material " << i << " (" << mat.name << ")\n";
-        std::cout << "  Diffuse: " << mat.diffuse[0] << ", " << mat.diffuse[1] << ", " << mat.diffuse[2] << "\n";
-        std::cout << "  Specular: " << mat.specular[0] << ", " << mat.specular[1] << ", " << mat.specular[2] << "\n";
-        std::cout << "  Shininess: " << mat.shininess << "\n";
+        std::cout << "Material " << i << " (" << mat.name << ")" << endl;
+        // AMBIENT
+        string ambient_texname = mat.ambient_texname.empty() ? "None" : mat.ambient_texname;
+        std::cout << "  Ambient Texture: " << mat.ambient_texname << endl; 
+        std::cout << "  Ambient: " << mat.ambient[0] << ", " << mat.ambient[1] << ", " << mat.ambient[2] << endl; 
+        // DIFFUSE
+        string diffuse_texname = mat.diffuse_texname.empty() ? "None" : mat.diffuse_texname;
+        std::cout << "  Diffuse Texture: " << diffuse_texname << endl; 
+        std::cout << "  Diffuse: " << mat.diffuse[0] << ", " << mat.diffuse[1] << ", " << mat.diffuse[2] << endl; 
+        // SPECULAR
+        string specular_texname = mat.specular_texname.empty() ? "None" : mat.specular_texname;
+        std::cout << "  Specular Texture: " << mat.specular_texname << endl; 
+        std::cout << "  Specular: " << mat.specular[0] << ", " << mat.specular[1] << ", " << mat.specular[2] << endl; 
+        std::cout << "  Shininess: " << mat.shininess << endl; 
     }
 }
 

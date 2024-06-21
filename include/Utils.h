@@ -11,7 +11,7 @@
 
 class Utils {
 public:
-    static std::vector<std::unique_ptr<Mesh>>  load_obj(const char* filename, const char *mtl_basepath);
+    static std::vector<std::unique_ptr<Mesh>>  load_obj(const char* filename, const char *mtl_basepath = "./");
 private:
     static void LogLoadObjInfo(const tinyobj::attrib_t& attrib, const std::vector<tinyobj::shape_t>& shapes, const std::vector<tinyobj::material_t>& materials);
     static void LogMeshInfo(const std::unique_ptr<Mesh> &mesh, const std::string &name);
