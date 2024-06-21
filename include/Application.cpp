@@ -86,38 +86,38 @@ void Application::Render()
     // Projection -----------------------------------------------
     // compute at each windows resize -> ResizeWindow(int width, int height)
 
-    // Camera View -----------------------------------------------------
+    // Camera View ----------------------------------------------
     m_viewMatrix.loadIdentity();
     m_viewMatrix.translate(0.0f, 0.0f, -60.f);
 
-    // Model Transformation -------------------------------------
+    // Model  ---------------------------------------------------
     float time = static_cast<float>(glfwGetTime());
     float angle = static_cast<float>(time) * 20.0f;
     // float move = sin(static_cast<float>(time));
 
     // World Matrix = Translate * Rotate * Scale (dans cet ordre)
-    m_worldMatrix.loadIdentity();
+    m_modelMatrix.loadIdentity();
     // -------------- Scale ------------------
-    // m_worldMatrix.scale(move, move, move);
+    // m_modelMatrix.scale(move, move, move);
     // -------------- Rotate -----------------
-    m_worldMatrix.rotateY(angle);
-    // m_worldMatrix.rotateX(angle);
+    m_modelMatrix.rotateY(angle);
+    // m_modelMatrix.rotateX(angle);
     // -------------- Translate --------------
-    // m_worldMatrix.translate(move, 0.0f, 0.0f);
+    // m_modelMatrix.translate(move, 0.0f, 0.0f);
 
     // Send uniforms Matrix -------------------------------------
-    glUniformMatrix4fv(glGetUniformLocation(program, "u_World"), 1, GL_FALSE, m_worldMatrix.data);
+    glUniformMatrix4fv(glGetUniformLocation(program, "u_Model"), 1, GL_FALSE, m_modelMatrix.data);
     glUniformMatrix4fv(glGetUniformLocation(program, "u_View"), 1, GL_FALSE, m_viewMatrix.data);
     glUniformMatrix4fv(glGetUniformLocation(program, "u_Projection"), 1, GL_FALSE, m_projectionMatrix.data);
 
-    glUniformMatrix4fv(glGetUniformLocation(program, "u_NormalMatrix"), 1, GL_FALSE, m_worldMatrix.data);
+    glUniformMatrix4fv(glGetUniformLocation(program, "u_NormalMatrix"), 1, GL_FALSE, m_modelMatrix.data);
 
     glUniform2f(glGetUniformLocation(program, "u_Dimensions"), float(m_windowWidth), float(m_windowHeight));
 
     // Light -----------------------------------------------------
-    GLfloat lightColor[] = {1.0f, 1.0f, 1.0f};      // Blanc
+    GLfloat lightColor[] = {1.0f, 1.0f, 1.0f};     // Blanc
     GLfloat lightDirection[] = {0.0f, 1.0f, 1.0f}; // Direction de la lumière
-    GLfloat ambientColor[] = {0.2f, 0.2f, 0.2f};    // Lumière ambiante faible
+    GLfloat ambientColor[] = {0.1f, 0.1f, 0.1f};   // Lumière ambiante faible
 
     glUniform3fv(glGetUniformLocation(program, "u_LightColor"), 1, lightColor);
     glUniform3fv(glGetUniformLocation(program, "u_LightDirection"), 1, lightDirection);
@@ -152,9 +152,9 @@ void Application::ResizeWindow(int width, int height)
 
     // Recalculer la matrice de projection
     // PERPECTIVE
-    m_projectionMatrix = Mat4::perspective(45.0f, float(m_windowWidth) / float(m_windowHeight), 0.1f, 100.0f);
+    Mat4::perspective(&m_projectionMatrix, 45.0f, float(m_windowWidth) / float(m_windowHeight), 0.1f, 100.0f);
     // ORTHO
-    // float right = 10 / 2.0f; // float(m_windowWidth)
-    // float top = 10 / 2.0f;   // float(m_windowHeight)
-    // m_projectionMatrix = Mat4::ortho(-right, right, -top, top, -10.0f, 10.0f);
+    // float right = float(m_windowWidth) / 2.0f; // float(m_windowWidth)
+    // float top = float(m_windowWidth) / 2.0f;   // float(m_windowHeight)
+    // Mat4::ortho(&m_projectionMatrix, -right, right, -top, top, -5.0f, 5.0f);
 }

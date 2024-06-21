@@ -10,31 +10,29 @@ void Mat4::loadIdentity()
     data[0] = data[5] = data[10] = data[15] = 1.0f;
 }
 
-Mat4 Mat4::ortho(float left, float right, float bottom, float top, float znear, float zfar) {
-    Mat4 m;
+void Mat4::ortho(Mat4* m, float left, float right, float bottom, float top, float znear, float zfar) {
 
-    m.data[0] = 2.0f / (right - left);
-    m.data[5] = 2.0f / (top - bottom);
-    m.data[10] = -2.0f / (zfar - znear);
-    m.data[12] = -(right + left) / (right - left);
-    m.data[13] = -(top + bottom) / (top - bottom);
-    m.data[14] = -(zfar + znear) / (zfar - znear);
-    m.data[15] = 1.0f;
-    return m;
+    m->loadIdentity();
+    m->data[0] = 2.0f / (right - left);
+    m->data[5] = 2.0f / (top - bottom);
+    m->data[10] = -2.0f / (zfar - znear);
+    m->data[12] = -(right + left) / (right - left);
+    m->data[13] = -(top + bottom) / (top - bottom);
+    m->data[14] = -(zfar + znear) / (zfar - znear);
+    m->data[15] = 1.0f;
 }
 
-Mat4 Mat4::perspective(float fov, float aspect, float znear, float zfar)
+void Mat4::perspective(Mat4* m, float fov, float aspect, float znear, float zfar)
 {
     float f = 1.0f / std::tan(fov * 0.5f);
-    Mat4 m;
 
-    m.data[0] = f / aspect;
-    m.data[5] = f;
-    m.data[10] = -(zfar + znear) / (zfar - znear);
-    m.data[11] = -1.0f;
-    m.data[14] = -(2.0f * zfar * znear) / (zfar - znear);
-    m.data[15] = 0.0f;
-    return m;
+    m->loadIdentity();
+    m->data[0] = f / aspect;
+    m->data[5] = f;
+    m->data[10] = -(zfar + znear) / (zfar - znear);
+    m->data[11] = -1.0f;
+    m->data[14] = -(2.0f * zfar * znear) / (zfar - znear);
+    m->data[15] = 0.0f;
 }
 
 void Mat4::translate(float x, float y, float z)
