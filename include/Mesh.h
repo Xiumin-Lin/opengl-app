@@ -3,6 +3,7 @@
 
 #include <GL/glew.h> // For uint32_t
 #include <vector>
+#include <memory>
 #include "Vertex.h"
 
 class Mesh {
@@ -11,7 +12,12 @@ public:
     uint32_t indexCount = 0;
     Vertex* vertices = nullptr;
     uint32_t* indices = nullptr;
-    
+
+    vec3 ambientColor = vec3(1.0f, 1.0f, 1.0f);
+    vec3 diffuseColor = vec3(1.0f, 1.0f, 1.0f);
+    vec3 specularColor = vec3(1.0f, 1.0f, 1.0f);
+    float shininess = 8.0f;
+
     // Verterx Buffer Object (VBO) & Index Buffer Object (IBO)
     // Vertex Array Object (VAO) is not available in OpenGL ES 2.1
     GLuint VBO = 0, IBO = 0;
@@ -25,6 +31,9 @@ public:
     Mesh& operator=(Mesh&& other) noexcept;         // Opérateur d'affectation de déplacement
     ~Mesh();
 
+    void move(const Mesh& other);
+    void reset();
+    void deleteMesh();
     void allocateVertices(size_t count);
     void allocateIndices(size_t count);
 

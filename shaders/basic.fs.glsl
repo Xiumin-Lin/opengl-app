@@ -6,15 +6,14 @@ varying vec3 v_Normal;
 varying vec2 v_TexCoords;
 
 // Variables uniformes ==========================================
-uniform vec3 u_AmbientColor; // Lumiere ambiante globale
 uniform vec3 u_ViewPosition; // Position de la caméra
 
 uniform sampler2D u_Texture;
-// uniform sampler2D u_Texture1;
+uniform sampler2D u_Texture_Specular;
 
 struct Light {
     vec3 direction;     // I
-    // vec3 ambientColor;  // ia pour la lumière ambiante --> use global ambient color u_AmbientColor
+    vec3 ambientColor;  // ia pour la lumière ambiante
     vec3 diffuseColor;  // id pour la lumière diffuse
     vec3 specularColor; // is pour la lumière spéculaire
 };
@@ -33,7 +32,7 @@ uniform vec2 u_Dimensions; // dimensions de la fenetre
 
 // Fonctions ===================================================
 vec3 ambient() {
-    return u_Material.ambientColor * u_AmbientColor;
+    return u_Material.ambientColor * u_Light.ambientColor;
 }
 
 /**
@@ -67,7 +66,7 @@ vec3 specular(vec3 N, vec3 L, vec3 V) {
     vec3 H = normalize(L + V);
     float NdotH = max(dot(N, H), 0.0);
     float specularComponent = pow(NdotH, u_Material.shininess);
-    return u_Light.specularColor * u_Material.specularColor * specularComponent;
+    return specularComponent * u_Light.specularColor;
 }
 
 // Main ========================================================
@@ -115,7 +114,8 @@ void main() {
     vec3 specularColor = specular(N, L, V);
 
     vec4 texColor = texture2D(u_Texture, v_TexCoords);
-    vec3 result = texColor.rgb * (ambientColor + diffuseColor) + specularColor;
+    vec4 texSpecularColor = texture2D(u_Texture_Specular, v_TexCoords);
+    vec3 result = texColor.rgb * (ambientColor + diffuseColor) + (specularColor * texSpecularColor.rgb);
     gl_FragColor = vec4(result, texColor.a);
 
     // Gradient color -------------------------------------------------------

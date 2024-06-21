@@ -28,7 +28,8 @@ private:
     std::vector<std::unique_ptr<Mesh>> m_meshes;
     Mat4 m_modelMatrix, m_viewMatrix, m_projectionMatrix;
     
-    Texture* m_textures;
+    Texture* m_texture;
+    Texture* m_specular_texture;
 };
 
 #endif

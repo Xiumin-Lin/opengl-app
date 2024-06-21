@@ -4,21 +4,13 @@
 
 Mesh::~Mesh()
 {
-    delete[] vertices;
-    delete[] indices;
-    deleteGLBuffers();
+    deleteMesh();
 }
 // Constructeur de déplacement pour std::move
 Mesh::Mesh(Mesh &&other) noexcept
-    : vertexCount(other.vertexCount), indexCount(other.indexCount), vertices(other.vertices), indices(other.indices),
-      VBO(other.VBO), IBO(other.IBO), positionLocation(other.positionLocation), normalLocation(other.normalLocation), texcoordLocation(other.texcoordLocation)
 {
-    other.vertices = nullptr;
-    other.indices = nullptr;
-    other.vertexCount = 0;
-    other.indexCount = 0;
-    other.VBO = 0;
-    other.IBO = 0;
+    move(other);
+    other.reset();
 }
 
 // Opérateur d'affectation de déplacement pour std::move
@@ -26,28 +18,52 @@ Mesh &Mesh::operator=(Mesh &&other) noexcept
 {
     if (this != &other)
     {
-        delete[] vertices;
-        delete[] indices;
-        deleteGLBuffers();
-
-        vertices = other.vertices;
-        indices = other.indices;
-        vertexCount = other.vertexCount;
-        indexCount = other.indexCount;
-        VBO = other.VBO;
-        IBO = other.IBO;
-        positionLocation = other.positionLocation;
-        normalLocation = other.normalLocation;
-        texcoordLocation = other.texcoordLocation;
-
-        other.vertices = nullptr;
-        other.indices = nullptr;
-        other.vertexCount = 0;
-        other.indexCount = 0;
-        other.VBO = 0;
-        other.IBO = 0;
+        deleteMesh();
+        move(other);
+        other.reset();
     }
     return *this;
+}
+
+void Mesh::deleteMesh() {
+    delete[] vertices;
+    delete[] indices;
+    deleteGLBuffers();
+}
+
+void Mesh::move(const Mesh& other) {
+    vertices = other.vertices;
+    indices = other.indices;
+    vertexCount = other.vertexCount;
+    indexCount = other.indexCount;
+    
+    ambientColor = other.ambientColor;
+    diffuseColor = other.diffuseColor;
+    specularColor = other.specularColor;
+    shininess = other.shininess;
+
+    VBO = other.VBO;
+    IBO = other.IBO;
+    
+    positionLocation = other.positionLocation;
+    normalLocation = other.normalLocation;
+    texcoordLocation = other.texcoordLocation;
+}
+
+void Mesh::reset() {
+    vertices = nullptr;
+    indices = nullptr;
+    vertexCount = 0;
+    indexCount = 0;
+    ambientColor = vec3(1.0f, 1.0f, 1.0f);
+    diffuseColor = vec3(1.0f, 1.0f, 1.0f);
+    specularColor = vec3(1.0f, 1.0f, 1.0f);
+    shininess = 8.0f;
+    IBO = 0;
+    VBO = 0;
+    positionLocation = -1;
+    normalLocation = -1;
+    texcoordLocation = -1;
 }
 
 void Mesh::allocateVertices(size_t count)

@@ -66,13 +66,14 @@ void Application::Initialize(GLFWwindow *window, int width, int height, const st
     }
 
     // Texture ===============================================================
-    m_textures = new Texture[2];
+    m_texture = new Texture();
 
-    if (m_textures[0].Load("./assets/brick.png")) cout << "Texture 1 loaded" << endl;
+    if (m_texture->Load("./assets/brick.png")) cout << "Texture 1 loaded" << endl;
     else { cerr << "Texture 1 not loaded" << endl; exit(1); }
 
-    if (m_textures[1].Load("./assets/brick-specular.png")) cout << "Texture 2 loaded" << endl;
-    else { cerr << "Texture 2 not loaded" << endl; exit(1); }
+    m_specular_texture = new Texture();
+    if (m_specular_texture->Load("./assets/brick-specular.png")) cout << "Specular Texture loaded" << endl;
+    else { cerr << "Specular Texture not loaded" << endl; exit(1); }
 }
 
 void Application::Render()
@@ -126,10 +127,10 @@ void Application::Render()
     GLfloat matSpecular[] = {0.4f, 0.6f, 0.8f};
     GLfloat shininess = 8.0f;
 
-    glUniform3fv(glGetUniformLocation(program, "u_AmbientColor"), 1, ambientColor);
     glUniform3fv(glGetUniformLocation(program, "u_ViewPosition"), 1, cameraPos);
     
     glUniform3fv(glGetUniformLocation(program, "u_Light.direction"), 1, lightDirection);
+    glUniform3fv(glGetUniformLocation(program, "u_Light.ambientColor"), 1, ambientColor);
     glUniform3fv(glGetUniformLocation(program, "u_Light.diffuseColor"), 1, lightColor);
     glUniform3fv(glGetUniformLocation(program, "u_Light.specularColor"), 1, lightColor);
 
@@ -139,16 +140,16 @@ void Application::Render()
     glUniform1f(glGetUniformLocation(program, "u_Material.shininess"), shininess);
 
     // Texture ---------------------------------------------------
-    m_textures[0].Bind(GL_TEXTURE0, glGetUniformLocation(program, "u_Texture"));
-    // m_textures[1].Bind(GL_TEXTURE0, glGetUniformLocation(program, "u_Texture1"), 1);
+    m_texture->Bind(GL_TEXTURE0, glGetUniformLocation(program, "u_Texture"));
+    m_specular_texture->Bind(GL_TEXTURE0, glGetUniformLocation(program, "u_Texture_Specular"), 1);
 
     // Draw ------------------------------------------------------
     for (std::unique_ptr<Mesh>& mesh_pt : m_meshes)
     {
         mesh_pt->draw();
     }
-    m_textures[0].Unbind();
-    // m_textures[1].Unbind();
+    m_texture->Unbind();
+    m_specular_texture->Unbind();
     // Il on suppose que la phase d'echange des buffers front et back
     // le « swap buffers » est effectuee juste apres
 }
@@ -156,7 +157,8 @@ void Application::Render()
 void Application::Terminate()
 {
     m_meshes.clear();
-    delete[] m_textures;
+    delete m_texture;
+    delete m_specular_texture;
     m_basicProgram.Destroy();
 }
 
