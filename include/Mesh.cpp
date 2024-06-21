@@ -51,9 +51,10 @@ void Mesh::SetAttribLocation(int positionLocation, int normalLocation, int texco
 /**
  * @brief Bind the VBO and IBO to the current OpenGL context
  * And setup the vertex attributes
- * DO NOT FORGET TO UNBIND THE VBO AND IBO AFTER CALLING THIS FUNCTION
+ * NOT TO MYSELF: DO NOT BIND VBO AND IBO SEPARATELY FROM DRAWELEMENTS
+ * OTHERWISE ONLY THE LAST VBO AND IBO OF MESHES WILL BE USED
  */
-void Mesh::Draw() {        
+void Mesh::Draw() {
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
         glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_STATIC_DRAW);
 
@@ -74,8 +75,7 @@ void Mesh::Draw() {
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(uint32_t), indices.data(), GL_STATIC_DRAW);
 
         glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, nullptr);
-        
+
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
 }

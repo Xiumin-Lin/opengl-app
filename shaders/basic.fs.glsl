@@ -17,7 +17,7 @@ void main() {
     // gl_FragColor = vec4(abs(v_Normal), 1.0);
 
     // TEXTURE -------------------------------------------------------------
-    vec4 texColor = texture2D(u_Texture, v_TexCoords); // * normalColor;
+    vec4 texColor = texture2D(u_Texture, v_TexCoords) * normalColor;
     gl_FragColor = texColor;
 
     // GRADIENT COLOR -------------------------------------------------------

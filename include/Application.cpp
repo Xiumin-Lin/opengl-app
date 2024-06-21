@@ -29,14 +29,18 @@ void Application::Initialize(GLFWwindow *window, int width, int height, const st
 #ifdef WIN32
     wglSwapIntervalEXT(1);
 #endif
-
+    // Meshes ================================================================
     if (object_filename.empty())
     {
         m_meshes.push_back(Mesh::GenererRectangle()); // default mesh
-    } else {
+    }
+    else
+    {
         m_meshes = Utils::load_obj(object_filename.c_str());
     }
-    if (m_meshes.empty()) {
+
+    if (m_meshes.empty())
+    {
         std::cerr << "No mesh loaded" << std::endl;
         exit(1);
     }
@@ -53,31 +57,16 @@ void Application::Initialize(GLFWwindow *window, int width, int height, const st
         mesh.SetAttribLocation(POSITION, NORMAL, TEX_COORD);
     }
 
-    // Texture
-    int texWidth, texHeight, texChannels;
-    stbi_set_flip_vertically_on_load(true); // flip the texture vertically
-    unsigned char* texBuffer = stbi_load("./assets/brick.png", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-    if (!texBuffer)
+    // Texture ================================================================
+    if (m_texture.Load("./assets/brick.png"))
     {
-        std::cerr << "Failed to load texture" << std::endl;
+        std::cout << "Texture loaded" << std::endl;
+    }
+    else
+    {
+        std::cerr << "Texture not loaded" << std::endl;
         exit(1);
     }
-
-    glGenTextures(1, &textureID);
-    glBindTexture(GL_TEXTURE_2D, textureID);
-        // Filtrage bilineaire dans tous les cas (Minification et Magnification)
-        // les coordonnees de texture sont limitees a [0 ; 1[
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        // Si rien n’est specifie pour GL_TEXTURE_WRAP_* c’est GL_REPEAT par defaut
-        // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, texWidth, texHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, texBuffer);
-        glGenerateMipmap(GL_TEXTURE_2D);
-
-        stbi_image_free(texBuffer);
-    glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void Application::Render()
@@ -110,25 +99,22 @@ void Application::Render()
     // -------------- Translate --------------
     // m_worldMatrix.translate(move, 0.0f, 0.0f);
 
-    // Send uniforms --------------------------------------------
+    // Send uniforms Matrix -------------------------------------
     glUniformMatrix4fv(glGetUniformLocation(m_basicProgram.GetProgram(), "u_World"), 1, GL_FALSE, m_worldMatrix.data);
     glUniformMatrix4fv(glGetUniformLocation(m_basicProgram.GetProgram(), "u_View"), 1, GL_FALSE, m_viewMatrix.data);
     glUniformMatrix4fv(glGetUniformLocation(m_basicProgram.GetProgram(), "u_Projection"), 1, GL_FALSE, m_projectionMatrix.data);
 
     glUniform2f(glGetUniformLocation(m_basicProgram.GetProgram(), "u_Dimensions"), float(m_windowWidth), float(m_windowHeight));
 
-
     // Texture ---------------------------------------------------
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, textureID);
-    glUniform1i(glGetUniformLocation(m_basicProgram.GetProgram(), "u_Texture"), 0);
+    m_texture.Bind(GL_TEXTURE0, glGetUniformLocation(m_basicProgram.GetProgram(), "u_Texture"));
 
-    // Draw -----------------------------------------------------
+    // Draw ------------------------------------------------------
     for (Mesh &mesh : m_meshes)
     {
         mesh.Draw();
     }
-
+    m_texture.Unbind();
     // Il on suppose que la phase d'echange des buffers front et back
     // le « swap buffers » est effectuee juste apres
 }
@@ -137,7 +123,7 @@ void Application::Terminate()
 {
     for (Mesh &mesh : m_meshes)
         mesh.DeleteGLBuffers();
-    glDeleteTextures(1, &textureID);
+    m_texture.DeleteTexture();
     m_basicProgram.Destroy();
 }
 

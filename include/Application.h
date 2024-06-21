@@ -9,12 +9,12 @@
 #include "Vertex.h"
 #include "Mesh.h"
 #include "Mat4.h"
+#include "Texture.h"
 
 class Application
 {
 public:
     void Initialize(GLFWwindow *window, int width, int height, const std::string &object_filename = "");
-    void LoadObject(const char *filename);
     void Render();
     void Terminate();
     void ResizeWindow(int width, int height);
@@ -27,7 +27,7 @@ private:
     std::vector<Mesh> m_meshes;
     Mat4 m_worldMatrix, m_viewMatrix, m_projectionMatrix;
     
-    GLuint textureID;
+    Texture m_texture;
 };
 
 #endif

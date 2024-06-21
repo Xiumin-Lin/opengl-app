@@ -15,9 +15,9 @@ struct Mesh {
     
     Mesh() : vertexCount(0) {}
     void GenerateGLBuffers();
+    void DeleteGLBuffers();
     void SetAttribLocation(int positionLocation, int normalLocation, int texcoordLocation);
     void Draw();
-    void DeleteGLBuffers();
     static Mesh GenereTriangle();
     static Mesh GenererRectangle();
 };
