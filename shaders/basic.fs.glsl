@@ -9,24 +9,41 @@ uniform vec2 u_Dimensions; // dimensions de la fenetre
 varying vec3 v_Normal;
 varying vec2 v_TexCoords;
 
+struct Light {
+    vec3 direction;     // I
+    // vec3 ambientColor;  // ia pour la lumière ambiante --> use global ambient color u_AmbientColor
+    vec3 diffuseColor;  // id pour la lumière diffuse
+    vec3 specularColor; // is pour la lumière spéculaire
+};
+
+struct Material {
+    vec3 ambientColor;   // ka pour la couleur du mat ambiante
+    vec3 diffuseColor;   // kd pour la couleur du mat diffuse
+    vec3 specularColor;  // ks pour la couleur du mat spéculaire
+    float shininess;     // Facteur de brillance
+};
+
+uniform Light u_Light;
+uniform Material u_Material;
+uniform vec3 u_AmbientColor; // Lumiere ambiante globale
+uniform vec3 u_ViewPosition; // Position de la caméra
+
 uniform sampler2D u_Texture;
 // uniform sampler2D u_Texture1;
 
-uniform vec3 u_LightColor;      // Couleur de la lumiere
-uniform vec3 u_LightDirection;  // Direction de la lumiere
-uniform vec3 u_AmbientColor;    // Lumiere ambiante
-uniform vec3 u_DiffuseMaterial; // Couleur de diffision du material
+vec3 ambient() {
+    return u_Material.ambientColor * u_AmbientColor;
+}
 
-uniform vec3 u_ViewPosition;      // Position de la caméra dans l'espace
-uniform float u_Shininess;      // Brillance du matériau
-
-// Calculer la lumiere diffuse
-// N = normale en un point (vertex ou fragment) dans l’espace
-// L = vecteur directeur normalisé allant d’un point VERS une lumiere
-vec3 diffuse(vec3 N, vec3 L, vec3 lightColor) {
+/**
+* Calculer la lumiere diffuse
+* N = normale en un point (vertex ou fragment) dans l’espace
+* L = vecteur directeur normalisé allant d’un point VERS une lumiere
+*/
+vec3 diffuse(vec3 N, vec3 L) {
     // loi de lambert = max(N.L, 0) = cos(angle entre N et L)
-    float NdotL = max(dot(normalize(N), normalize(L)), 0.0);
-    return NdotL * lightColor;
+    float NdotL = max(dot(N, L), 0.0);
+    return NdotL * u_Material.diffuseColor * u_Light.diffuseColor;
 }
 
 /**
@@ -39,10 +56,10 @@ vec3 diffuse(vec3 N, vec3 L, vec3 lightColor) {
 * @param shininess brillance du materiau.
 * @return
 */
-vec3 specular(vec3 N, vec3 L, vec3 V, vec3 lightColor, float shininess) {
-    vec3 R = reflect(-L, N);  // L doit être inversé car reflect s'attend à ce que I pointe vers la surface
-    float spec = pow(max(dot(R, V), 0.0), shininess);
-    return spec * lightColor;
+vec3 specular(vec3 N, vec3 L, vec3 V) {
+    vec3 R = reflect(-L, N); // L doit être inversé car reflect s'attend à ce que I pointe vers la surface
+    float spec = pow(max(dot(R, V), 0.0), u_Material.shininess);
+    return spec * u_Material.specularColor * u_Light.specularColor;
 }
 
 void main() {
@@ -57,27 +74,40 @@ void main() {
     // gl_FragColor = mix(texColor, texColor1, 0.5) * vec4(finalColor, 1.0);
 
     // Ambiant + Diffuse color -------------------------------------------------------
-    // vec3 normalizedNormal = normalize(v_Normal);
-    // vec3 normalizedLightDir = normalize(u_LightDirection);
-    // vec3 diffuseLight = diffuse(normalizedNormal, normalizedLightDir, u_LightColor);
-    // vec3 finalColor = diffuseLight + u_AmbientColor;
+    // vec3 N = normalize(v_Normal);
+    // vec3 L = normalize(u_Light.direction);
+    // vec3 diffuseColor = diffuse(N, L);
+    // vec3 finalColor = diffuseColor + ambient();
     // gl_FragColor = vec4(finalColor, 1.0);
 
     // Ambiant + Diffuse + Texture -----------------------------------------------------
     // vec4 texColor = texture2D(u_Texture, v_TexCoords);
-    // vec3 normalizedNormal = normalize(v_Normal);
-    // vec3 normalizedLightDir = normalize(u_LightDirection);
-    // vec3 diffuseLight = diffuse(normalizedNormal, normalizedLightDir, u_LightColor);
-    // vec3 finalColor = (diffuseLight * u_DiffuseMaterial * texColor.rgb) + u_AmbientColor;
+    // vec3 N = normalize(v_Normal);
+    // vec3 L = normalize(u_Light.direction);
+    // vec3 diffuseColor = diffuse(N, L);
+    // vec3 finalColor = (diffuseColor + ambient()) * texColor.rgb;
     // gl_FragColor = vec4(finalColor, texColor.a);
 
     // Specular color ------------------------------------------------------
     // Simule les reflets de la lumiere sur la surface de l'objet
+    // vec3 N = normalize(v_Normal);
+    // vec3 L = normalize(u_Light.direction);
+    // vec3 V = normalize(u_ViewPosition - gl_FragCoord.xyz); // Calculer le vecteur vue
+    // vec3 specularColor = specular(N, L, V);
+    // gl_FragColor = vec4(specularColor, 1.0);
+
+    // Phong color ---------------------------------------------------------
     vec3 N = normalize(v_Normal);
-    vec3 L = normalize(u_LightDirection);
-    vec3 V = normalize(u_ViewPosition - gl_FragCoord.xyz); // Calculer le vecteur vue
-    vec3 specularColor = specular(N, L, V, u_LightColor, u_Shininess);
-    gl_FragColor = vec4(specularColor, 1.0);
+    vec3 L = normalize(u_Light.direction);
+    vec3 V = normalize(u_ViewPosition - gl_FragCoord.xyz);
+
+    vec3 ambientColor = ambient();
+    vec3 diffuseColor = diffuse(N, L);
+    vec3 specularColor = specular(N, L, V);
+
+    vec4 texColor = texture2D(u_Texture, v_TexCoords);
+    vec3 result = texColor.rgb * (ambientColor + diffuseColor) + specularColor;
+    gl_FragColor = vec4(result, texColor.a);
 
     // Gradient color -------------------------------------------------------
     // Calculez une couleur de base à partir des valeurs absolues des normales.

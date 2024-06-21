@@ -115,24 +115,32 @@ void Application::Render()
     glUniform2f(glGetUniformLocation(program, "u_Dimensions"), float(m_windowWidth), float(m_windowHeight));
 
     // Light -----------------------------------------------------
-    GLfloat lightColor[] = {1.0f, 1.0f, 1.0f};      // Couleur de la source lumineuse
-    GLfloat lightDirection[] = {0.0f, 1.0f, 1.0f};  // Direction de la lumière
-    GLfloat ambientColor[] = {0.1f, 0.1f, 0.1f};    // Lumière ambiante faible
-    GLfloat diffuseMaterial[] = {1.0f, 1.0f, 1.0f}; // valeur RGB, indique quel pourcentage de RGB est réfléchi par le matériau
+    GLfloat ambientColor[] = {0.5f, 0.5f, 0.5f};    // Lumière ambiante faible
     GLfloat cameraPos[] = {m_viewMatrix.data[12], m_viewMatrix.data[13], m_viewMatrix.data[14]};
+
+    GLfloat lightDirection[] = {0.0f, 1.0f, 1.0f};  // Direction de la lumière
+    GLfloat lightColor[] = {0.3f, 0.9f, 0.7f};      // Couleur de la source lumineuse
+
+    GLfloat matAmbient[] = {0.0f, 0.0f, 1.0f};
+    GLfloat matDiffuse[] = {0.4f, 0.6f, 0.8f}; // valeur RGB, indique quel pourcentage de RGB est réfléchi par le matériau
+    GLfloat matSpecular[] = {1.0f, 1.0f, 1.0f};
     GLfloat shininess = 32.0f;
 
-    glUniform3fv(glGetUniformLocation(program, "u_LightColor"), 1, lightColor);
-    glUniform3fv(glGetUniformLocation(program, "u_LightDirection"), 1, lightDirection);
     glUniform3fv(glGetUniformLocation(program, "u_AmbientColor"), 1, ambientColor);
-    glUniform3fv(glGetUniformLocation(program, "u_DiffuseMaterial"), 1, diffuseMaterial);
-
     glUniform3fv(glGetUniformLocation(program, "u_ViewPosition"), 1, cameraPos);
-    glUniform1f(glGetUniformLocation(program, "u_Shininess"), shininess);
+    
+    glUniform3fv(glGetUniformLocation(program, "u_Light.direction"), 1, lightDirection);
+    glUniform3fv(glGetUniformLocation(program, "u_Light.diffuseColor"), 1, lightColor);
+    glUniform3fv(glGetUniformLocation(program, "u_Light.specularColor"), 1, lightColor);
+
+    glUniform3fv(glGetUniformLocation(program, "u_Material.ambientColor"), 1, matAmbient);
+    glUniform3fv(glGetUniformLocation(program, "u_Material.diffuseColor"), 1, matDiffuse);
+    glUniform3fv(glGetUniformLocation(program, "u_Material.specularColor"), 1, matSpecular);
+    glUniform1f(glGetUniformLocation(program, "u_Material.shininess"), shininess);
 
     // Texture ---------------------------------------------------
     m_textures[0].Bind(GL_TEXTURE0, glGetUniformLocation(program, "u_Texture"));
-    m_textures[1].Bind(GL_TEXTURE0, glGetUniformLocation(program, "u_Texture1"), 1);
+    // m_textures[1].Bind(GL_TEXTURE0, glGetUniformLocation(program, "u_Texture1"), 1);
 
     // Draw ------------------------------------------------------
     for (std::unique_ptr<Mesh>& mesh_pt : m_meshes)
@@ -140,7 +148,7 @@ void Application::Render()
         mesh_pt->draw();
     }
     m_textures[0].Unbind();
-    m_textures[1].Unbind();
+    // m_textures[1].Unbind();
     // Il on suppose que la phase d'echange des buffers front et back
     // le « swap buffers » est effectuee juste apres
 }
