@@ -1,6 +1,4 @@
 #include "Mesh.h"
-#include <iostream>
-#include <cstring> // For memcpy
 
 Mesh::~Mesh()
 {
@@ -86,6 +84,10 @@ void Mesh::createMaterial()
     material = new Material();
 }
 
+void Mesh::setWorldMatrix(const Mat4& matrix) {
+    worldMatrix = matrix;
+}
+
 void Mesh::generateGLBuffers()
 {
     glGenBuffers(1, &VBO);
@@ -118,6 +120,13 @@ void Mesh::setAttribLocation(int positionLocation, int normalLocation, int texco
     else this->texcoordLocation = texcoordLocation;
 }
 
+void Mesh::setUniformLocation(int worldMatrixLocation, int normalMatrixLocation) {
+    if (worldMatrixLocation < 0) std::cerr << "Invalid WORLD MATRIX uniform location" << std::endl;
+    else this->worldMatrixLocation = worldMatrixLocation;
+    if (normalMatrixLocation < 0) std::cerr << "Invalid NORMAL MATRIX uniform location" << std::endl;
+    else this->normalMatrixLocation = normalMatrixLocation;
+}
+
 /**
  * @brief Bind the VBO and IBO to the current OpenGL context
  * And setup the vertex attributes
@@ -126,6 +135,11 @@ void Mesh::setAttribLocation(int positionLocation, int normalLocation, int texco
  */
 void Mesh::draw()
 {
+    // Setup Uniforms Matrices
+    glUniformMatrix4fv(worldMatrixLocation, 1, GL_FALSE, worldMatrix.data);
+    glUniformMatrix3fv(normalMatrixLocation, 1, GL_FALSE, worldMatrix.getNormalMatrix().data);
+    
+    // Bind VBO
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
         glEnableVertexAttribArray(positionLocation);
         glVertexAttribPointer(positionLocation, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, position));
@@ -135,7 +149,7 @@ void Mesh::draw()
 
         glEnableVertexAttribArray(texcoordLocation);
         glVertexAttribPointer(texcoordLocation, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)offsetof(Vertex, texcoords));
-
+    // Bind IBO
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IBO);
         glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
 

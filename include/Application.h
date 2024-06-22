@@ -3,14 +3,18 @@
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <vector>
+#include <iostream>
 #include <memory>
+#include <vector>
+
 #include "../common/GLShader.h"
 
 #include "Vertex.h"
-#include "Mesh.h"
 #include "Mat4.h"
+#include "Mesh.h"
 #include "Texture.h"
+#include "Utils.h"
+
 
 class Application
 {
@@ -26,7 +30,7 @@ private:
 
     GLShader m_basicProgram;
     std::vector<std::unique_ptr<Mesh>> m_meshes;
-    Mat4 m_modelMatrix, m_viewMatrix, m_projectionMatrix;
+    Mat4 m_viewMatrix, m_projectionMatrix;
 };
 
 #endif

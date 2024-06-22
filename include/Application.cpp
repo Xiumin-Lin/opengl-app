@@ -1,7 +1,4 @@
 #include "Application.h"
-#include <iostream>
-#include "Utils.h"
-#include "../vendor/stb/stb_image.h"
 
 using namespace std;
 
@@ -58,18 +55,22 @@ void Application::Initialize(GLFWwindow *window, int width, int height, const st
     // Comme VAO n'est pas disponible en OpenGL 2.1, on configure et lie en avamce les VBO et IBO
     // puis dans le render, on appelle ConfigRenderParameters pour configurer les attributs de vertex
     int program = m_basicProgram.GetProgram();
-    for (std::unique_ptr<Mesh> &mesh_pt : m_meshes)
+    for (std::unique_ptr<Mesh> &mesh_ptr : m_meshes)
     {
-        cout << "> Setup Mesh: " << mesh_pt->name << endl;
-        mesh_pt->setAttribLocation(
+        cout << "> Setup Mesh: " << mesh_ptr->name << endl;
+        mesh_ptr->setAttribLocation(
             glGetAttribLocation(program, "a_Position"), // sauvegarder les location index pour 
             glGetAttribLocation(program, "a_Normal"),   // eviter de rappeler glGetAttribLocation à chaque render
             glGetAttribLocation(program, "a_TexCoords")
         );
-        mesh_pt->generateGLBuffers();   // setup les VBO et IBO en les liant avec les vertices et indices
+        mesh_ptr->setUniformLocation(
+            glGetUniformLocation(program, "u_Model"),
+            glGetUniformLocation(program, "u_NormalMatrix")
+        );
+        mesh_ptr->generateGLBuffers();   // setup les VBO et IBO en les liant avec les vertices et indices
 
         // Load texture and specular texture
-        Material *material = mesh_pt->material;
+        Material *material = mesh_ptr->material;
         material->setMaterialAttribLocation(    // sauvegarder les location index
             glGetUniformLocation(program, "u_Material.ambientColor"), 
             glGetUniformLocation(program, "u_Material.diffuseColor"), 
@@ -100,29 +101,9 @@ void Application::Render()
     m_viewMatrix.translate(0.0f, 0.0f, -40.f);
 #pragma endregion
 
-#pragma region MODEL MATRIX-------------------------------------
-    float time = static_cast<float>(glfwGetTime());
-    float angle = static_cast<float>(time) * 20.0f;
-    // float move = sin(static_cast<float>(time));
-
-    // World Matrix = Translate * Rotate * Scale (dans cet ordre)
-    m_modelMatrix.loadIdentity();
-    // -------------- Scale ------------------
-    // m_modelMatrix.scale(move, move, move);
-    // -------------- Rotate -----------------
-    m_modelMatrix.rotateX(angle);
-    m_modelMatrix.rotateY(angle);
-    // -------------- Translate --------------
-    // m_modelMatrix.translate(move, 0.0f, 0.0f);
-#pragma endregion 
-
 #pragma region SEND UNIFORM MATRIX-----------------------------
-    glUniformMatrix4fv(glGetUniformLocation(program, "u_Model"), 1, GL_FALSE, m_modelMatrix.data);
     glUniformMatrix4fv(glGetUniformLocation(program, "u_View"), 1, GL_FALSE, m_viewMatrix.data);
     glUniformMatrix4fv(glGetUniformLocation(program, "u_Projection"), 1, GL_FALSE, m_projectionMatrix.data);
-
-    glUniformMatrix4fv(glGetUniformLocation(program, "u_NormalMatrix"), 1, GL_FALSE, m_modelMatrix.data);
-
     // glUniform2f(glGetUniformLocation(program, "u_Dimensions"), float(m_windowWidth), float(m_windowHeight));
 #pragma endregion
 
@@ -142,9 +123,25 @@ void Application::Render()
 #pragma endregion
 
 #pragma region DRAW -------------------------------------------
-    for (std::unique_ptr<Mesh> &mesh_pt : m_meshes)
+    float time = static_cast<float>(glfwGetTime());
+    float angle = static_cast<float>(time) * 20.0f;
+    // float move = sin(static_cast<float>(time));
+    for (std::unique_ptr<Mesh> &mesh_ptr : m_meshes)
     {
-        Material *material = mesh_pt->material;
+#pragma region WORLD MATRIX = Translate x Rotate x Scale (repecter l ordre)
+        Mat4 worldMatrix = Mat4();
+        // World Matrix = Translate * Rotate * Scale (dans cet ordre)
+        // -------------- Scale ------------------
+        // worldMatrix.scale(move, move, move);
+        // -------------- Rotate -----------------
+        worldMatrix.rotateX(angle);
+        worldMatrix.rotateY(angle);
+        // -------------- Translate --------------
+        // worldMatrix.translate(move, 0.0f, 0.0f);
+        mesh_ptr->setWorldMatrix(worldMatrix);
+#pragma endregion 
+
+        Material *material = mesh_ptr->material;
         // SETUP Material light -------------------------------
         material->configUniformMaterialParameters();
         // Bind Texture if present ----------------------------
@@ -157,7 +154,7 @@ void Application::Render()
             material->specular_texture->bind(GL_TEXTURE0, glGetUniformLocation(program, "u_TextureSpecular"), 1);
 
         // Draw mesh with material ----------------------------
-        mesh_pt->draw();
+        mesh_ptr->draw();
 
         // Unbind Texture -------------------------------------
         material->unbindTexture();

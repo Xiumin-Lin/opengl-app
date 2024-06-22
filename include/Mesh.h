@@ -2,11 +2,15 @@
 #define MESH_H
 
 #include <GL/glew.h> // For uint32_t
-#include <vector>
+#include <cstring> // For memcpy
+#include <iostream>
 #include <memory>
 #include <string>
-#include "Vertex.h"
+#include <vector>
+
+#include "Mat4.h"
 #include "Material.h"
+#include "Vertex.h"
 
 class Mesh {
 public:
@@ -20,11 +24,16 @@ public:
     // Material
     Material* material = nullptr;
 
+    // Reference World matrix
+    Mat4 worldMatrix = Mat4();
+
     // Verterx Buffer Object (VBO) & Index Buffer Object (IBO)
     // Vertex Array Object (VAO) is not available in OpenGL ES 2.1
     GLuint VBO = 0, IBO = 0;
     // Atrribute locations
     int positionLocation = -1, normalLocation = -1, texcoordLocation = -1;
+    // Uniform locations
+    int worldMatrixLocation = -1, normalMatrixLocation = -1;
     
     Mesh() = default;
     Mesh(const Mesh& other) = delete;               // Suppression du constructeur de copie
@@ -39,10 +48,12 @@ public:
     void allocateVertices(size_t count);
     void allocateIndices(size_t count);
     void createMaterial();
+    void setWorldMatrix(const Mat4& worldMatrix);
 
     void generateGLBuffers();
     void deleteGLBuffers();
     void setAttribLocation(int positionLocation, int normalLocation, int texcoordLocation);
+    void setUniformLocation(int worldMatrixLocation, int normalMatrixLocation);
     void draw();
 
     static Mesh GenereTriangle();
