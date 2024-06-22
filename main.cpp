@@ -4,8 +4,8 @@
 
 #include "include/Application.h"
 
-const int WIDTH = 500;
-const int HEIGHT = 500;
+const int WIDTH = 800;
+const int HEIGHT = 800;
 
 int main(void)
 {
@@ -55,7 +55,7 @@ int main(void)
 
     // ---------------------------------------------------------------
     Application app;
-    app.Initialize(window, WIDTH, HEIGHT, "assets/teapot/teapot.obj", "assets/teapot/");
+    app.Initialize(window, WIDTH, HEIGHT, 50, "assets/yoda/yoda.obj", "assets/yoda/");
     
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))

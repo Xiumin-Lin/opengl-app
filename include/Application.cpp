@@ -69,7 +69,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 }
 #pragma endregion
 
-void Application::Initialize(GLFWwindow *window, int width, int height, const string &object_filename, const string &mtl_basepath)
+void Application::Initialize(GLFWwindow *window, int width, int height, float cameraInitRadium, const string &object_filename, const string &mtl_basepath)
 {
     m_window = window;
     glfwSetWindowUserPointer(window, this); // Stocker le pointeur vers l'instance de la classe Application
@@ -77,7 +77,7 @@ void Application::Initialize(GLFWwindow *window, int width, int height, const st
 
     glfwSetFramebufferSizeCallback(m_window, window_resize_callback);
 
-    m_camera = CameraOrbitale(vec3(0.0f, 0.0f, 0.0f), 40.0f, 0.0f, 0.0f);
+    m_camera = CameraOrbitale(vec3(0.0f, 0.0f, 0.0f), cameraInitRadium, 0.0f, 0.0f);
     cout << "Camera Orbitale initialized" << endl;
     glfwSetCursorPosCallback(window, mouseCallback);
     glfwSetScrollCallback(window, scrollCallback);
@@ -171,10 +171,13 @@ void Application::Render()
     // glUniform2f(glGetUniformLocation(program, "u_Dimensions"), float(m_windowWidth), float(m_windowHeight));
 
 #pragma region LIGHT-------------------------------------------
+    float time = static_cast<float>(glfwGetTime());
+    float angle = static_cast<float>(time) * 20.0f;
+    float move = sin(static_cast<float>(time));
     GLfloat ambientColor[] = {1.0f, 1.0f, 1.0f}; // Lumière ambiante faible
 
-    GLfloat lightDirection[] = {0.0f, 1.0f, 1.0f}; // Direction de la lumière
-    GLfloat lightColor[] = {1.0f, 1.f, 1.0f};     // Couleur de la source lumineuse
+    GLfloat lightDirection[] = {move, 1.0f, 1.0f}; // Direction de la lumière
+    GLfloat lightColor[] = {3.0f, 3.0f, 3.0f};     // Couleur de la source lumineuse
 
     vec3 camPos = m_camera.getPosition();
     glUniform3f(glGetUniformLocation(program, "u_ViewPosition"), camPos.x, camPos.y, camPos.z);
@@ -185,19 +188,18 @@ void Application::Render()
 #pragma endregion
 
 #pragma region DRAW -------------------------------------------
-    float time = static_cast<float>(glfwGetTime());
-    float angle = static_cast<float>(time) * 20.0f;
-    // float move = sin(static_cast<float>(time));
+
     for (std::unique_ptr<Mesh> &mesh_ptr : m_meshes)
     {
 #pragma region WORLD MATRIX = Translate x Rotate x Scale (repecter l ordre)
         Mat4 worldMatrix = Mat4();
         // World Matrix = Translate * Rotate * Scale (dans cet ordre)
         // -------------- Scale ------------------
-        // worldMatrix.scale(move, move, move);
+        worldMatrix.scale(0.01f, 0.01f, 0.01f); // yoda is very big, use this scale and initial radius of the camera to 50
         // -------------- Rotate -----------------
         // worldMatrix.rotateX(angle);
         // worldMatrix.rotateY(angle);
+        worldMatrix.rotateZ(angle);
         // -------------- Translate --------------
         // worldMatrix.translate(move, 0.0f, 0.0f);
         mesh_ptr->setWorldMatrix(worldMatrix);

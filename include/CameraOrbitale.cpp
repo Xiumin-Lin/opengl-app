@@ -64,8 +64,9 @@ void CameraOrbitale::mouseCallback(double xpos, double ypos, bool isFirstClick)
 
 void CameraOrbitale::scrollCallback(double xoffset, double yoffset)
 {
-    m_radius -= yoffset * 0.1f;
-    m_radius = std::max(1.0f, std::min(100.0f, m_radius));
+    m_radius -= yoffset * 20.0f; // for yoda.obj
+    // m_radius -= yoffset * 0.3f;
+    m_radius = std::max(1.0f, std::min(200.0f, m_radius));
 }
 
 void CameraOrbitale::keyCallback(int key, int scancode, int action, int mods)
