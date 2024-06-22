@@ -2,6 +2,10 @@
 
 using namespace std;
 
+#pragma region GLFW WINDOWS CALLBACKS==========================
+bool isDragging = false;
+bool isFirstClick = true;
+
 void window_resize_callback(GLFWwindow *window, int width, int height)
 {
     // cout << "Resized to " << width << "x" << height << endl;
@@ -12,12 +16,52 @@ void window_resize_callback(GLFWwindow *window, int width, int height)
     }
 }
 
+void scrollCallback(GLFWwindow* window, double xoffset, double yoffset) {
+    Application *app = static_cast<Application *>(glfwGetWindowUserPointer(window));
+    if (app != nullptr)
+    {
+        app->GetCamera().scrollCallback(xoffset, yoffset);
+    }
+}
+
+void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
+    if (!isDragging) return;
+    Application *app = static_cast<Application *>(glfwGetWindowUserPointer(window));
+    if (app != nullptr)
+    {
+        app->GetCamera().mouseCallback(xpos, ypos, isFirstClick);
+    }
+}
+
+void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+        // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        if (isFirstClick) {
+            isFirstClick = false;
+        }
+        isDragging = true;
+    }
+    else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
+        // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        isDragging = false;
+        isFirstClick = true;
+    }
+}
+#pragma endregion
+
 void Application::Initialize(GLFWwindow *window, int width, int height, const string &object_filename, const string &mtl_basepath)
 {
     m_window = window;
     glfwSetWindowUserPointer(window, this); // Stocker le pointeur vers l'instance de la classe Application
     ResizeWindow(width, height);
+
     glfwSetFramebufferSizeCallback(m_window, window_resize_callback);
+
+    m_camera = CameraOrbitale(vec3(0.0f, 0.0f, 0.0f), 40.0f, 0.0f, 0.0f);
+    cout << "Camera Orbitale initialized" << endl;
+    glfwSetCursorPosCallback(window, mouseCallback);
+    glfwSetScrollCallback(window, scrollCallback);
+    glfwSetMouseButtonCallback(window, mouseButtonCallback);
 
     m_basicProgram.LoadVertexShader("./shaders/basic.vs.glsl");
     m_basicProgram.LoadFragmentShader("./shaders/basic.fs.glsl");
@@ -82,6 +126,7 @@ void Application::Initialize(GLFWwindow *window, int width, int height, const st
         cout << endl;                       // si succes, les textures sont bind et has_texture est mis à true
     }
 #pragma endregion
+
 }
 
 void Application::Render()
@@ -97,28 +142,23 @@ void Application::Render()
 #pragma endregion
 
 #pragma region CAMERA VIEW MATRIX------------------------------
-    vec3 camPosition = vec3(0.0f, 0.0f, 40.0f); // Position de la caméra
-    vec3 camTarget = vec3(0.0f, 0.0f, 0.0f);       // Point que la caméra regarde
-    vec3 up = vec3(0.0f, 1.0f, 0.0f);           // Le haut du monde
-
-    m_viewMatrix.lookAt(camPosition, camTarget, up);
+    m_camera.update();
 #pragma endregion
 
 #pragma region SEND UNIFORM MATRIX-----------------------------
-    glUniformMatrix4fv(glGetUniformLocation(program, "u_View"), 1, GL_FALSE, m_viewMatrix.data);
+    glUniformMatrix4fv(glGetUniformLocation(program, "u_View"), 1, GL_FALSE, m_camera.getViewMatrix().data);
     glUniformMatrix4fv(glGetUniformLocation(program, "u_Projection"), 1, GL_FALSE, m_projectionMatrix.data);
     // glUniform2f(glGetUniformLocation(program, "u_Dimensions"), float(m_windowWidth), float(m_windowHeight));
 #pragma endregion
 
-#pragma region LIGHT ------------------------------------------
+#pragma region LIGHT-------------------------------------------
     GLfloat ambientColor[] = {0.5f, 0.5f, 0.5f}; // Lumière ambiante faible
-    GLfloat cameraPos[] = {m_viewMatrix.data[12], m_viewMatrix.data[13], m_viewMatrix.data[14]};
 
     GLfloat lightDirection[] = {0.0f, 1.0f, 1.0f}; // Direction de la lumière
     GLfloat lightColor[] = {1.0f, 1.f, 1.0f};     // Couleur de la source lumineuse
 
-    glUniform3fv(glGetUniformLocation(program, "u_ViewPosition"), 1, cameraPos);
-
+    vec3 camPos = m_camera.getPosition();
+    glUniform3f(glGetUniformLocation(program, "u_ViewPosition"), camPos.x, camPos.y, camPos.z);
     glUniform3fv(glGetUniformLocation(program, "u_Light.direction"), 1, lightDirection);
     glUniform3fv(glGetUniformLocation(program, "u_Light.ambientColor"), 1, ambientColor);
     glUniform3fv(glGetUniformLocation(program, "u_Light.diffuseColor"), 1, lightColor);
@@ -137,8 +177,8 @@ void Application::Render()
         // -------------- Scale ------------------
         // worldMatrix.scale(move, move, move);
         // -------------- Rotate -----------------
-        worldMatrix.rotateX(angle);
-        worldMatrix.rotateY(angle);
+        // worldMatrix.rotateX(angle);
+        // worldMatrix.rotateY(angle);
         // -------------- Translate --------------
         // worldMatrix.translate(move, 0.0f, 0.0f);
         mesh_ptr->setWorldMatrix(worldMatrix);

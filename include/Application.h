@@ -9,11 +9,12 @@
 
 #include "../common/GLShader.h"
 
-#include "Vertex.h"
+#include "CameraOrbitale.h"
 #include "Mat4.h"
 #include "Mesh.h"
 #include "Texture.h"
 #include "Utils.h"
+#include "Vertex.h"
 
 
 class Application
@@ -23,6 +24,7 @@ public:
     void Render();
     void Terminate();
     void ResizeWindow(int width, int height);
+    CameraOrbitale& GetCamera() { return m_camera; }
 
 private:
     GLFWwindow *m_window;
@@ -30,7 +32,8 @@ private:
 
     GLShader m_basicProgram;
     std::vector<std::unique_ptr<Mesh>> m_meshes;
-    Mat4 m_viewMatrix, m_projectionMatrix;
+    Mat4 m_projectionMatrix;
+    CameraOrbitale m_camera;
 };
 
 #endif
