@@ -54,19 +54,27 @@ void Application::Initialize(GLFWwindow *window, int width, int height, const st
 
     // Comme VAO n'est pas disponible en OpenGL 2.1, on configure et lie en avamce les VBO et IBO
     // puis dans le render, on appelle ConfigRenderParameters pour configurer les attributs de vertex
-    const int POSITION = glGetAttribLocation(m_basicProgram.GetProgram(), "a_Position");
-    const int NORMAL = glGetAttribLocation(m_basicProgram.GetProgram(), "a_Normal");
-    const int TEX_COORD = glGetAttribLocation(m_basicProgram.GetProgram(), "a_TexCoords");
+    int program = m_basicProgram.GetProgram();
     for (std::unique_ptr<Mesh> &mesh_pt : m_meshes)
     {
         cout << "> Setup Mesh: " << mesh_pt->name << endl;
-        mesh_pt->setAttribLocation(POSITION, NORMAL, TEX_COORD);
+        mesh_pt->setAttribLocation(
+            glGetAttribLocation(program, "a_Position"),
+            glGetAttribLocation(program, "a_Normal"),
+            glGetAttribLocation(program, "a_TexCoords")
+        );
         mesh_pt->generateGLBuffers();
 
         // Load texture and specular texture
-        Material *mat = mesh_pt->material;
-        mat->tryLoadTexture();
-        mat->tryLoadSpecularTexture();
+        Material *material = mesh_pt->material;
+        material->setMaterialAttribLocation(
+            glGetUniformLocation(program, "u_Material.ambientColor"), 
+            glGetUniformLocation(program, "u_Material.diffuseColor"), 
+            glGetUniformLocation(program, "u_Material.specularColor"),
+            glGetUniformLocation(program, "u_Material.shininess")
+        );
+        material->tryLoadTexture();
+        material->tryLoadSpecularTexture();
         cout << endl;
     }
 }
@@ -119,12 +127,7 @@ void Application::Render()
     GLfloat cameraPos[] = {m_viewMatrix.data[12], m_viewMatrix.data[13], m_viewMatrix.data[14]};
 
     GLfloat lightDirection[] = {0.0f, 1.0f, 1.0f}; // Direction de la lumière
-    GLfloat lightColor[] = {0.3f, 0.9f, 0.7f};     // Couleur de la source lumineuse
-
-    GLfloat matAmbient[] = {0.0f, 0.0f, 1.0f};
-    GLfloat matDiffuse[] = {0.4f, 0.6f, 0.8f}; // valeur RGB, indique quel pourcentage de RGB est réfléchi par le matériau
-    GLfloat matSpecular[] = {0.4f, 0.6f, 0.8f};
-    GLfloat shininess = 8.0f;
+    GLfloat lightColor[] = {1.0f, 1.f, 1.0f};     // Couleur de la source lumineuse
 
     glUniform3fv(glGetUniformLocation(program, "u_ViewPosition"), 1, cameraPos);
 
@@ -132,34 +135,28 @@ void Application::Render()
     glUniform3fv(glGetUniformLocation(program, "u_Light.ambientColor"), 1, ambientColor);
     glUniform3fv(glGetUniformLocation(program, "u_Light.diffuseColor"), 1, lightColor);
     glUniform3fv(glGetUniformLocation(program, "u_Light.specularColor"), 1, lightColor);
-
-    glUniform3fv(glGetUniformLocation(program, "u_Material.ambientColor"), 1, matAmbient);
-    glUniform3fv(glGetUniformLocation(program, "u_Material.diffuseColor"), 1, matDiffuse);
-    glUniform3fv(glGetUniformLocation(program, "u_Material.specularColor"), 1, matSpecular);
-    glUniform1f(glGetUniformLocation(program, "u_Material.shininess"), shininess);
 #pragma endregion
 
 #pragma region DRAW -------------------------------------------
     for (std::unique_ptr<Mesh> &mesh_pt : m_meshes)
     {
-        // Bind Texture --------------------------------------- // TODO: Factoriser
-        Material *mat = mesh_pt->material;
-        glUniform1i(glGetUniformLocation(program, "u_Material.hasTexture"), mat->has_texture ? 1 : 0);
-        if (mat->has_texture)
-            mat->texture->bind(GL_TEXTURE0, glGetUniformLocation(program, "u_Texture"), 0);
+        Material *material = mesh_pt->material;
+        // SETUP Material light -------------------------------
+        material->configUniformMaterialParameters();
+        // Bind Texture if present ----------------------------
+        glUniform1i(glGetUniformLocation(program, "u_Material.hasTexture"), material->has_texture ? 1 : 0);
+        if (material->has_texture)
+            material->texture->bind(GL_TEXTURE0, glGetUniformLocation(program, "u_Texture"), 0);
 
-        glUniform1i(glGetUniformLocation(program, "u_Material.hasTextureSpecular"), mat->has_specular_texture ? 1 : 0);
-        if (mat->has_specular_texture)
-            mat->specular_texture->bind(GL_TEXTURE0, glGetUniformLocation(program, "u_TextureSpecular"), 1);
+        glUniform1i(glGetUniformLocation(program, "u_Material.hasTextureSpecular"), material->has_specular_texture ? 1 : 0);
+        if (material->has_specular_texture)
+            material->specular_texture->bind(GL_TEXTURE0, glGetUniformLocation(program, "u_TextureSpecular"), 1);
 
-        // Draw -----------------------------------------------
+        // Draw mesh with material ----------------------------
         mesh_pt->draw();
 
-        // Unbind Texture ------------------------------------- // TODO: Factoriser
-        if (mat->has_texture)
-            mat->texture->unbind();
-        if (mat->has_specular_texture)
-            mat->specular_texture->unbind();
+        // Unbind Texture -------------------------------------
+        material->unbindTexture();
     }
 #pragma endregion
     // Il on suppose que la phase d'echange des buffers front et back

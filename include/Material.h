@@ -24,11 +24,14 @@ public:
     vec3 specular;
     float shininess;
 
+    int ambientLocation = -1, diffuseLocation = -1, specularLocation = -1, shininessLocation = -1;
+
     Material() : asset_path("./assets/"), texture_filename(""), specular_texture_filename(""),
                  texture(nullptr), specular_texture(nullptr),
                  has_texture(false), has_specular_texture(false),
                  ambient(vec3(1.0f, 1.0f, 1.0f)), diffuse(vec3(1.0f, 1.0f, 1.0f)),
-                 specular(vec3(1.0f, 1.0f, 1.0f)), shininess(8.0f) {}
+                 specular(vec3(1.0f, 1.0f, 1.0f)), shininess(8.0f),
+                 ambientLocation(-1), diffuseLocation(-1), specularLocation(-1), shininessLocation(-1) {}
 
     ~Material()
     {
@@ -41,8 +44,13 @@ public:
     std::string getTexturePath() { return asset_path + texture_filename; }
     std::string getSpecularTexturePath() { return asset_path + specular_texture_filename; }
 
-    void tryLoadTexture();
-    void tryLoadSpecularTexture();
+    void setMaterialAttribLocation(int ambientLocation, int diffuseLocation, int specularLocation, int shininessLocation);
+    void configUniformMaterialParameters();
+
+    void unbindTexture();
+
+    bool tryLoadTexture();
+    bool tryLoadSpecularTexture();
 
     void logInfo();
 };

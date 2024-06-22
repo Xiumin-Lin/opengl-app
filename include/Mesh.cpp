@@ -110,15 +110,12 @@ void Mesh::deleteGLBuffers()
 
 void Mesh::setAttribLocation(int positionLocation, int normalLocation, int texcoordLocation)
 {
-    if (positionLocation < 0)
-        std::cerr << "Invalid POSITION attribute location" << std::endl;
-    this->positionLocation = positionLocation;
-    if (normalLocation < 0)
-        std::cerr << "Invalid NORMAL attribute location" << std::endl;
-    this->normalLocation = normalLocation;
-    if (texcoordLocation < 0)
-        std::cerr << "Invalid TEX COORD attribute location" << std::endl;
-    this->texcoordLocation = texcoordLocation;
+    if (positionLocation < 0) std::cerr << "Invalid POSITION attribute location" << std::endl;
+    else this->positionLocation = positionLocation;
+    if (normalLocation < 0) std::cerr << "Invalid NORMAL attribute location" << std::endl;
+    else this->normalLocation = normalLocation;
+    if (texcoordLocation < 0) std::cerr << "Invalid TEX COORD attribute location" << std::endl;
+    else this->texcoordLocation = texcoordLocation;
 }
 
 /**
