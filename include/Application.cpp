@@ -45,13 +45,16 @@ void Application::Initialize(GLFWwindow *window, int width, int height, const st
     //     cout << "VAO[" << i << "] = " << VAOs[i] << endl;
     // }
 #pragma endregion
-    // Meshes ================================================================
+    
+#pragma region MESHES LOADING==================================
     if (object_filename.empty()) m_meshes.push_back(std::make_unique<Mesh>(Mesh::GenererRectangle())); // default mesh
     else m_meshes = Utils::load_obj(object_filename, mtl_basepath);
 
     if (m_meshes.empty()) { cerr << "No mesh loaded" << endl; exit(1); }
     cout << "Application Loaded " << m_meshes.size() << " meshes" << endl;
+#pragma endregion
 
+#pragma region CONFIGURE MESHES================================
     // Comme VAO n'est pas disponible en OpenGL 2.1, on configure et lie en avamce les VBO et IBO
     // puis dans le render, on appelle ConfigRenderParameters pour configurer les attributs de vertex
     int program = m_basicProgram.GetProgram();
@@ -59,24 +62,25 @@ void Application::Initialize(GLFWwindow *window, int width, int height, const st
     {
         cout << "> Setup Mesh: " << mesh_pt->name << endl;
         mesh_pt->setAttribLocation(
-            glGetAttribLocation(program, "a_Position"),
-            glGetAttribLocation(program, "a_Normal"),
+            glGetAttribLocation(program, "a_Position"), // sauvegarder les location index pour 
+            glGetAttribLocation(program, "a_Normal"),   // eviter de rappeler glGetAttribLocation à chaque render
             glGetAttribLocation(program, "a_TexCoords")
         );
-        mesh_pt->generateGLBuffers();
+        mesh_pt->generateGLBuffers();   // setup les VBO et IBO en les liant avec les vertices et indices
 
         // Load texture and specular texture
         Material *material = mesh_pt->material;
-        material->setMaterialAttribLocation(
+        material->setMaterialAttribLocation(    // sauvegarder les location index
             glGetUniformLocation(program, "u_Material.ambientColor"), 
             glGetUniformLocation(program, "u_Material.diffuseColor"), 
             glGetUniformLocation(program, "u_Material.specularColor"),
             glGetUniformLocation(program, "u_Material.shininess")
         );
-        material->tryLoadTexture();
-        material->tryLoadSpecularTexture();
-        cout << endl;
+        material->tryLoadTexture();         // tente de load les textures
+        material->tryLoadSpecularTexture(); // (le nom de des textures est recuperé dans le fichier mtl via tiny_obj_loader)
+        cout << endl;                       // si succes, les textures sont bind et has_texture est mis à true
     }
+#pragma endregion
 }
 
 void Application::Render()

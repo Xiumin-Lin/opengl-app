@@ -141,12 +141,12 @@ vector<unique_ptr<Mesh>> Utils::load_obj(const std::string &filename, std::strin
 #pragma endregion
 
 #pragma region RECUPERATION DES MATERIALS
-        if (shape.mesh.material_ids.size() > 0)
+        new_mesh_pt->createMaterial();
+        if (shape.mesh.material_ids.size() > 0 && shape.mesh.material_ids[0] >= 0)
         {
             int material_id = shape.mesh.material_ids[0];
             tinyobj::material_t mat = materials[material_id];
-
-            new_mesh_pt->createMaterial();
+            
             Material* material = new_mesh_pt->material;
             material->asset_path = mtl_basepath;
             material->texture_filename = (mat.ambient_texname.empty() ? mat.diffuse_texname : mat.ambient_texname);

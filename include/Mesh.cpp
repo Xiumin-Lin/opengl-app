@@ -68,21 +68,21 @@ void Mesh::reset() {
 
 void Mesh::allocateVertices(size_t count)
 {
-    delete[] vertices;
+    if (vertices != nullptr) delete[] vertices;
     vertices = new Vertex[count];
     vertexCount = count;
 }
 
 void Mesh::allocateIndices(size_t count)
 {
-    delete[] indices;
+    if (indices != nullptr) delete[] indices;
     indices = new uint32_t[count];
     indexCount = count;
 }
 
 void Mesh::createMaterial()
 {
-    delete[] material;
+    if (material != nullptr) delete material;
     material = new Material();
 }
 

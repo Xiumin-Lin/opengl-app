@@ -41,8 +41,8 @@ public:
         specular_texture = nullptr;
     }
 
-    std::string getTexturePath() { return asset_path + texture_filename; }
-    std::string getSpecularTexturePath() { return asset_path + specular_texture_filename; }
+    std::string getTexturePath();
+    std::string getSpecularTexturePath();
 
     void setMaterialAttribLocation(int ambientLocation, int diffuseLocation, int specularLocation, int shininessLocation);
     void configUniformMaterialParameters();
