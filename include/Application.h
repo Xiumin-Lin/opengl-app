@@ -25,10 +25,12 @@ public:
     void Terminate();
     void ResizeWindow(int width, int height);
     CameraOrbitale& GetCamera() { return m_camera; }
+    void NextMeshFocus();
 
 private:
     GLFWwindow *m_window;
     int m_windowWidth, m_windowHeight;
+    int currentMeshFocusIndex = 0;
 
     GLShader m_basicProgram;
     std::vector<std::unique_ptr<Mesh>> m_meshes;

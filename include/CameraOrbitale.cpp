@@ -39,7 +39,8 @@ static double lastX = 0;
 static double lastY = 0;
 void CameraOrbitale::mouseCallback(double xpos, double ypos, bool isFirstClick)
 {
-    if (isFirstClick) {
+    if (isFirstClick)
+    {
         lastX = xpos;
         lastY = ypos;
         return;
@@ -55,14 +56,43 @@ void CameraOrbitale::mouseCallback(double xpos, double ypos, bool isFirstClick)
     m_theta -= deltaY * sensitivity;
     m_theta = std::max(-M_PI_2, std::min(M_PI_2, static_cast<double>(m_theta)));
 
-    if (m_phi > 2 * M_PI) m_phi -= 2 * M_PI;
-    else if (m_phi < -2 * M_PI) m_phi += 2 * M_PI;
-    update();
+    if (m_phi > 2 * M_PI)
+        m_phi -= 2 * M_PI;
+    else if (m_phi < -2 * M_PI)
+        m_phi += 2 * M_PI;
 }
 
 void CameraOrbitale::scrollCallback(double xoffset, double yoffset)
 {
     m_radius -= yoffset * 0.1f;
     m_radius = std::max(1.0f, std::min(100.0f, m_radius));
-    update();
+}
+
+void CameraOrbitale::keyCallback(int key, int scancode, int action, int mods)
+{
+    if (action == GLFW_PRESS || action == GLFW_REPEAT)
+    {
+        float m_speed = 1.0f;
+        switch (key)
+        {
+        case GLFW_KEY_W:
+            m_target += m_up * m_speed; // Forward
+            break;
+        case GLFW_KEY_S:
+            m_target -= m_up * m_speed; // Backward
+            break;
+        case GLFW_KEY_A:
+            m_target -= vec3::normalize(vec3::cross(getDirection(), m_up)) * m_speed; // Left
+            break;
+        case GLFW_KEY_D:
+            m_target += vec3::normalize(vec3::cross(getDirection(), m_up)) * m_speed; // Right
+            break;
+        case GLFW_KEY_SPACE:
+            m_target.y -= m_speed; // Up    
+            break;
+        case GLFW_KEY_LEFT_CONTROL:
+            m_target.y += m_speed; // Down
+            break;
+        }
+    }
 }

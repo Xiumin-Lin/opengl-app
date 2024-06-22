@@ -49,6 +49,7 @@ public:
     void allocateIndices(size_t count);
     void createMaterial();
     void setWorldMatrix(const Mat4& worldMatrix);
+    vec3 getPosition() const { return worldMatrix.getPosition(); }
 
     void generateGLBuffers();
     void deleteGLBuffers();

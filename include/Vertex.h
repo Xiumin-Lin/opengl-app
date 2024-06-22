@@ -14,19 +14,39 @@ struct vec3
 
     explicit vec3(float x = 0.0f, float y = 0.0f, float z = 0.0f) : x(x), y(y), z(z) {}
 
-    vec3 operator-(const vec3 &other) const
-    {
-        return vec3(x - other.x, y - other.y, z - other.z);
-    }
-
     vec3 operator*(float scalar) const
     {
         return vec3(x * scalar, y * scalar, z * scalar);
     }
 
+    vec3 operator+(const vec3 &other) const
+    {
+        return vec3(x + other.x, y + other.y, z + other.z);
+    }
+
+    vec3 operator-(const vec3 &other) const
+    {
+        return vec3(x - other.x, y - other.y, z - other.z);
+    }
+
+    void operator+= (const vec3 &other)
+    {
+        x += other.x;
+        y += other.y;
+        z += other.z;
+    }
+
+    void operator-= (const vec3 &other)
+    {
+        x -= other.x;
+        y -= other.y;
+        z -= other.z;
+    }
+
     static vec3 normalize(const vec3 &v)
     {
         float norm = sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+        if (norm == 0) return vec3(0, 0, 0);  // Retourner un vecteur nul si la norme est zéro
         return vec3(v.x / norm, v.y / norm, v.z / norm);
     }
 

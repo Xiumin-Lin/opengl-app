@@ -18,9 +18,12 @@ public:
     const Mat4& getProjectionMatrix() const;
 
     const vec3& getPosition() const { return m_position; }
+    const vec3 getDirection() const { return m_target - m_position; }
+    void setTarget(const vec3& target) { m_target = target; }
 
     void mouseCallback(double xpos, double ypos, bool isFirstClick);
     void scrollCallback(double xoffset, double yoffset);
+    void keyCallback(int key, int scancode, int action, int mods);
 
 private:
     vec3 m_target;

@@ -29,6 +29,7 @@ struct Mat4
     void rotateZ(float angle);
     void scale(float x, float y, float z);
     Mat3 getNormalMatrix();
+    vec3 getPosition() const { return vec3(data[12], data[13], data[14]); }
 
     Mat4 operator*(const Mat4 &other) const
     {

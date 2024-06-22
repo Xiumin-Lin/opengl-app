@@ -47,6 +47,26 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
         isFirstClick = true;
     }
 }
+
+void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
+    }
+
+    Application *app = static_cast<Application *>(glfwGetWindowUserPointer(window));
+    if (app != nullptr)
+    {
+        app->GetCamera().keyCallback(key, scancode, action, mods);
+        // Change thee target of the camera to the next mesh
+        if(key == GLFW_KEY_F && action == GLFW_PRESS) {
+            app->NextMeshFocus();
+        }
+        // Reset the target of the camera to the origin == UNFOCUS
+        else if (key == GLFW_KEY_U && action == GLFW_PRESS) {
+            app->GetCamera().setTarget(vec3(0.0f, 0.0f, 0.0f));
+        }
+    }
+}
 #pragma endregion
 
 void Application::Initialize(GLFWwindow *window, int width, int height, const string &object_filename, const string &mtl_basepath)
@@ -62,6 +82,7 @@ void Application::Initialize(GLFWwindow *window, int width, int height, const st
     glfwSetCursorPosCallback(window, mouseCallback);
     glfwSetScrollCallback(window, scrollCallback);
     glfwSetMouseButtonCallback(window, mouseButtonCallback);
+    glfwSetKeyCallback(window, keyCallback);
 
     m_basicProgram.LoadVertexShader("./shaders/basic.vs.glsl");
     m_basicProgram.LoadFragmentShader("./shaders/basic.fs.glsl");
@@ -139,20 +160,18 @@ void Application::Render()
 
 #pragma region PROJECTION MATRIX-------------------------------
     // compute at each windows resize -> ResizeWindow(int width, int height)
-#pragma endregion
-
-#pragma region CAMERA VIEW MATRIX------------------------------
-    m_camera.update();
-#pragma endregion
-
-#pragma region SEND UNIFORM MATRIX-----------------------------
-    glUniformMatrix4fv(glGetUniformLocation(program, "u_View"), 1, GL_FALSE, m_camera.getViewMatrix().data);
     glUniformMatrix4fv(glGetUniformLocation(program, "u_Projection"), 1, GL_FALSE, m_projectionMatrix.data);
-    // glUniform2f(glGetUniformLocation(program, "u_Dimensions"), float(m_windowWidth), float(m_windowHeight));
 #pragma endregion
+
+#pragma region CAMERA VIEW MATRIX
+    m_camera.update();
+    glUniformMatrix4fv(glGetUniformLocation(program, "u_View"), 1, GL_FALSE, m_camera.getViewMatrix().data);
+#pragma endregion
+
+    // glUniform2f(glGetUniformLocation(program, "u_Dimensions"), float(m_windowWidth), float(m_windowHeight));
 
 #pragma region LIGHT-------------------------------------------
-    GLfloat ambientColor[] = {0.5f, 0.5f, 0.5f}; // Lumière ambiante faible
+    GLfloat ambientColor[] = {1.0f, 1.0f, 1.0f}; // Lumière ambiante faible
 
     GLfloat lightDirection[] = {0.0f, 1.0f, 1.0f}; // Direction de la lumière
     GLfloat lightColor[] = {1.0f, 1.f, 1.0f};     // Couleur de la source lumineuse
@@ -182,7 +201,7 @@ void Application::Render()
         // -------------- Translate --------------
         // worldMatrix.translate(move, 0.0f, 0.0f);
         mesh_ptr->setWorldMatrix(worldMatrix);
-#pragma endregion 
+#pragma endregion
 
         Material *material = mesh_ptr->material;
         // SETUP Material light -------------------------------
@@ -225,4 +244,12 @@ void Application::ResizeWindow(int width, int height)
     // float right = float(m_windowWidth) / 2.0f; // float(m_windowWidth)
     // float top = float(m_windowWidth) / 2.0f;   // float(m_windowHeight)
     // Mat4::ortho(&m_projectionMatrix, -right, right, -top, top, -5.0f, 5.0f);
+}
+
+void Application::NextMeshFocus()
+{
+    if (currentMeshFocusIndex < 0) currentMeshFocusIndex = 0;
+    currentMeshFocusIndex = currentMeshFocusIndex % m_meshes.size();
+    m_camera.setTarget(m_meshes[currentMeshFocusIndex]->getPosition());
+    currentMeshFocusIndex++;
 }
