@@ -1,7 +1,4 @@
 #include "Utils.h"
-#include <unordered_map>
-#include <tuple>
-
 using namespace std;
 
 // Utiliser un tuple pour combiner les indices de vertex, normal et texture

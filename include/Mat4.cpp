@@ -93,12 +93,7 @@ void Mat4::scale(float x, float y, float z)
     *this = *this * scale;
 }
 
-// void Mat4::invert()
-// {
-    
-// }
-
-// void Mat4::transpose()
-// {
-    
-// }
+Mat3 Mat4::getNormalMatrix() {
+    Mat3 worldMat3x3 = Mat3::convertToMat3(data);
+    return worldMat3x3.inverse().transpose();
+}

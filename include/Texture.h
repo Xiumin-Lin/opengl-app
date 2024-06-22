@@ -4,6 +4,9 @@
 #include <GL/glew.h>
 #include <string>
 
+// #define STB_IMAGE_IMPLEMENTATION is in stb_image.cpp
+#include "../vendor/stb/stb_image.h"
+
 class Texture {
 public:
     GLuint textureID;

@@ -1,12 +1,14 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#define TINYOBJ_LOADER_C_IMPLEMENTATION
+// #define TINYOBJLOADER_IMPLEMENTATION is in tiny_obj_loader.cc
 #include "../vendor/tiny_obj_loader.h"
 
 #include <iostream>
-#include <vector>
 #include <memory>
+#include <tuple>
+#include <unordered_map>
+#include <vector>
 #include "Mesh.h"
 
 class Utils {

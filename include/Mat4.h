@@ -1,9 +1,10 @@
 #ifndef MAT4_H
 #define MAT4_H
 
-class Mat4
+#include "Mat3.h"
+
+struct Mat4
 {
-public:
     /**
      * OpenGL est column-major
      * x, y & z sont les coordonnées de translation
@@ -26,8 +27,7 @@ public:
     void rotateY(float angle);
     void rotateZ(float angle);
     void scale(float x, float y, float z);
-    // void invert();
-    // void transpose();
+    Mat3 getNormalMatrix();
 
     Mat4 operator*(const Mat4 &other) const
     {

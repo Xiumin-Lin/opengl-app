@@ -30,7 +30,7 @@ public:
                  texture(nullptr), specular_texture(nullptr),
                  has_texture(false), has_specular_texture(false),
                  ambient(vec3(1.0f, 1.0f, 1.0f)), diffuse(vec3(1.0f, 1.0f, 1.0f)),
-                 specular(vec3(1.0f, 1.0f, 1.0f)), shininess(8.0f),
+                 specular(vec3(1.0f, 1.0f, 1.0f)), shininess(4.0f),
                  ambientLocation(-1), diffuseLocation(-1), specularLocation(-1), shininessLocation(-1) {}
 
     ~Material()

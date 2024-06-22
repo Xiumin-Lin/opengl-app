@@ -1,5 +1,4 @@
 #include "Texture.h"
-#include "../vendor/stb/stb_image.h"
 
 Texture::Texture() : textureID(0) {}
 
