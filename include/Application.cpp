@@ -153,7 +153,7 @@ void Application::Initialize(GLFWwindow *window, int width, int height, float ca
 void Application::Render()
 {
     glViewport(0, 0, m_windowWidth, m_windowHeight);
-    glClearColor(0.5f, 0.5f, 0.5f, 1.f);
+    glClearColor(0.7f, 0.7f, 0.7f, 1.f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     uint32_t program = m_basicProgram.GetProgram();
     glUseProgram(program);
@@ -176,7 +176,7 @@ void Application::Render()
     float move = sin(static_cast<float>(time));
     GLfloat ambientColor[] = {1.0f, 1.0f, 1.0f}; // Lumière ambiante faible
 
-    GLfloat lightDirection[] = {move, 1.0f, 1.0f}; // Direction de la lumière
+    GLfloat lightDirection[] = {move, 0.0f, 2.0f}; // Direction de la lumière
     GLfloat lightColor[] = {3.0f, 3.0f, 3.0f};     // Couleur de la source lumineuse
 
     vec3 camPos = m_camera.getPosition();
@@ -185,6 +185,17 @@ void Application::Render()
     glUniform3fv(glGetUniformLocation(program, "u_Light.ambientColor"), 1, ambientColor);
     glUniform3fv(glGetUniformLocation(program, "u_Light.diffuseColor"), 1, lightColor);
     glUniform3fv(glGetUniformLocation(program, "u_Light.specularColor"), 1, lightColor);
+
+    // ILLUMINATION HEMISPHERE
+    // vec3 skyColor = vec3(0.0, 0.1, 0.4);        // Bleu clair pour le ciel
+    // vec3 groundColor = vec3(0.3, 0.25, 0.2);    // Marron pour le sol
+    // vec3 skyDirection = vec3(0.0, 1.0, 0.0);    // Direction du ciel
+    // vec3 ambientIntensity = vec3(0.1, 0.1, 0.1);// Intensité lumineuse ambiante faible
+
+    // glUniform3f(glGetUniformLocation(m_basicProgram.GetProgram(), "u_SkyColor"), skyColor.x, skyColor.y, skyColor.z);
+    // glUniform3f(glGetUniformLocation(m_basicProgram.GetProgram(), "u_GroundColor"), groundColor.x, groundColor.y, groundColor.z);
+    // glUniform3f(glGetUniformLocation(m_basicProgram.GetProgram(), "u_SkyDirection"), skyDirection.x, skyDirection.y, skyDirection.z);
+    // glUniform3f(glGetUniformLocation(m_basicProgram.GetProgram(), "u_LightAmbientIntensity"), ambientIntensity.x, ambientIntensity.y, ambientIntensity.z);
 #pragma endregion
 
 #pragma region DRAW -------------------------------------------
@@ -195,7 +206,7 @@ void Application::Render()
         Mat4 worldMatrix = Mat4();
         // World Matrix = Translate * Rotate * Scale (dans cet ordre)
         // -------------- Scale ------------------
-        worldMatrix.scale(0.01f, 0.01f, 0.01f); // yoda is very big, use this scale and initial radius of the camera to 50
+        worldMatrix.scale(0.01f, 0.01f, 0.01f); // yoda is very big, active this scale and initial radius of the camera to 50
         // -------------- Rotate -----------------
         // worldMatrix.rotateX(angle);
         // worldMatrix.rotateY(angle);

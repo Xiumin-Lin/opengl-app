@@ -51,7 +51,7 @@ void CameraOrbitale::mouseCallback(double xpos, double ypos, bool isFirstClick)
     lastX = xpos;
     lastY = ypos;
 
-    float sensitivity = 0.004f;
+    float sensitivity = 0.002f;
     m_phi += deltaX * sensitivity;
     m_theta -= deltaY * sensitivity;
     m_theta = std::max(-M_PI_2, std::min(M_PI_2, static_cast<double>(m_theta)));
@@ -64,9 +64,9 @@ void CameraOrbitale::mouseCallback(double xpos, double ypos, bool isFirstClick)
 
 void CameraOrbitale::scrollCallback(double xoffset, double yoffset)
 {
-    m_radius -= yoffset * 20.0f; // for yoda.obj
+    m_radius -= yoffset * 5.0f; // for yoda.obj
     // m_radius -= yoffset * 0.3f;
-    m_radius = std::max(1.0f, std::min(200.0f, m_radius));
+    m_radius = std::max(1.0f, std::min(100.0f, m_radius));
 }
 
 void CameraOrbitale::keyCallback(int key, int scancode, int action, int mods)

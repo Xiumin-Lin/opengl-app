@@ -53,6 +53,9 @@ int main(void)
     glEnable(GL_BLEND);  
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+    // Activer la correction gamma
+    glEnable(GL_FRAMEBUFFER_SRGB);
+
     // ---------------------------------------------------------------
     Application app;
     app.Initialize(window, WIDTH, HEIGHT, 50, "assets/yoda/yoda.obj", "assets/yoda/");
