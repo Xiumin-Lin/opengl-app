@@ -2,6 +2,7 @@
 #define MAT4_H
 
 #include "Mat3.h"
+#include "Vertex.h"
 
 struct Mat4
 {
@@ -46,6 +47,8 @@ struct Mat4
         }
         return result;
     }
+
+    void lookAt(const vec3& position, const vec3& target, const vec3& up);
 };
 
 #endif // MAT4_H

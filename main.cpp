@@ -49,6 +49,10 @@ int main(void)
     // - GL_FRONT_AND_BACK: toutes les faces
     // glCullFace(GL_FRONT);
 
+    // Activer la transparence
+    glEnable(GL_BLEND);  
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     // ---------------------------------------------------------------
     Application app;
     app.Initialize(window, WIDTH, HEIGHT, "assets/teapot/teapot.obj", "assets/teapot/");

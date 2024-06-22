@@ -97,8 +97,11 @@ void Application::Render()
 #pragma endregion
 
 #pragma region CAMERA VIEW MATRIX------------------------------
-    m_viewMatrix.loadIdentity();
-    m_viewMatrix.translate(0.0f, 0.0f, -40.f);
+    vec3 camPosition = vec3(0.0f, 0.0f, 40.0f); // Position de la caméra
+    vec3 camTarget = vec3(0.0f, 0.0f, 0.0f);       // Point que la caméra regarde
+    vec3 up = vec3(0.0f, 1.0f, 0.0f);           // Le haut du monde
+
+    m_viewMatrix.lookAt(camPosition, camTarget, up);
 #pragma endregion
 
 #pragma region SEND UNIFORM MATRIX-----------------------------
