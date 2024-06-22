@@ -4,19 +4,21 @@
 #include <GL/glew.h> // For uint32_t
 #include <vector>
 #include <memory>
+#include <string>
 #include "Vertex.h"
 #include "Material.h"
 
 class Mesh {
 public:
+    std::string name = "";
+    // Mesh data
     uint32_t vertexCount = 0;
     uint32_t indexCount = 0;
     Vertex* vertices = nullptr;
     uint32_t* indices = nullptr;
 
     // Material
-    uint32_t materialCount = 0;
-    Material* materials = nullptr;
+    Material* material = nullptr;
 
     // Verterx Buffer Object (VBO) & Index Buffer Object (IBO)
     // Vertex Array Object (VAO) is not available in OpenGL ES 2.1
@@ -36,7 +38,7 @@ public:
     void deleteMesh();
     void allocateVertices(size_t count);
     void allocateIndices(size_t count);
-    void allocateMaterials(size_t count);
+    void createMaterial();
 
     void generateGLBuffers();
     void deleteGLBuffers();

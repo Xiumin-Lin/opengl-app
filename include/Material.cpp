@@ -1,44 +1,54 @@
 #include "Material.h"
 
+using namespace std;
+
 void Material::tryLoadTexture()
 {
-    if(texture != nullptr) delete texture;
+    if (texture != nullptr) delete texture;
+    if (texture_filename.empty()) {
+        cout << "No texture file specified" << endl;
+        return;
+    }
     texture = new Texture();
-    std::string filepath = getTexturePath();
-    if(texture->load(filepath))
+    string textureFilePath = getTexturePath();
+    if (texture->load(textureFilePath))
     {
         has_texture = true;
-        std::cout << "Success Loading Texture: " << filepath << std::endl;
+        cout << "[SUCCESS] Loading Texture: " << textureFilePath << endl;
     }
     else
     {
-        std::cout << "Failed Loading Texture: " << filepath << std::endl;
+        cout << "[FAILURE] Loading Texture: " << textureFilePath << endl;
     }
 }
 
 void Material::tryLoadSpecularTexture()
 {
-    if(specular_texture != nullptr) delete specular_texture;
+    if (specular_texture != nullptr) delete specular_texture;
+    if (specular_texture_filename.empty()) {
+        cout << "No specular texture file specified" << endl;
+        return;
+    }
     specular_texture = new Texture();
-    std::string filepath = getTexturePath();
-    if(specular_texture->load(getSpecularTexturePath()))
+    string specularTextureFilePath = getTexturePath();
+    if (specular_texture->load(getSpecularTexturePath()))
     {
         has_specular_texture = true;
-        std::cout << "Success Loading Specular Texture: " << filepath << std::endl;
+        cout << "[SUCCESS] Loading Specular Texture: " << specularTextureFilePath << endl;
     }
     else
     {
-        std::cout << "Failed Loading Specular Texture: " << filepath << std::endl;
+        cout << "[FAILURE] Loading Specular Texture: " << specularTextureFilePath << endl;
     }
 }
 
 void Material::logInfo()
 {
-    std::cout << "Material Info" << std::endl;
-    std::cout << "  - Texture: " << getTexturePath() << std::endl;
-    std::cout << "  - Specular Texture: " << getSpecularTexturePath() << std::endl;
-    std::cout << "  - Ambient: " << ambient.x << ", " << ambient.y << ", " << ambient.z << std::endl;
-    std::cout << "  - Diffuse: " << diffuse.x << ", " << diffuse.y << ", " << diffuse.z << std::endl;
-    std::cout << "  - Specular: " << specular.x << ", " << specular.y << ", " << specular.z << std::endl;
-    std::cout << "  - Shininess: " << shininess << std::endl;
+    cout << "Material Info" << endl;
+    cout << "  - Texture: " << getTexturePath() << endl;
+    cout << "  - Specular Texture: " << getSpecularTexturePath() << endl;
+    cout << "  - Ambient: " << ambient.x << ", " << ambient.y << ", " << ambient.z << endl;
+    cout << "  - Diffuse: " << diffuse.x << ", " << diffuse.y << ", " << diffuse.z << endl;
+    cout << "  - Specular: " << specular.x << ", " << specular.y << ", " << specular.z << endl;
+    cout << "  - Shininess: " << shininess << endl;
 }

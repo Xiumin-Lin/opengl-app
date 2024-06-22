@@ -28,10 +28,10 @@ Mesh &Mesh::operator=(Mesh &&other) noexcept
 void Mesh::deleteMesh() {
     if (vertices != nullptr) delete[] vertices;
     if (indices != nullptr) delete[] indices;
-    if (materials != nullptr) delete[] materials;
+    if (material != nullptr) delete material;
     vertices = nullptr;
     indices = nullptr;
-    materials = nullptr;
+    material = nullptr;
     deleteGLBuffers();
 }
 
@@ -41,8 +41,7 @@ void Mesh::move(const Mesh& other) {
     vertexCount = other.vertexCount;
     indexCount = other.indexCount;
 
-    materials = other.materials;
-    materialCount = other.materialCount;
+    material = other.material;
 
     VBO = other.VBO;
     IBO = other.IBO;
@@ -58,8 +57,7 @@ void Mesh::reset() {
     vertexCount = 0;
     indexCount = 0;
 
-    materials = nullptr;
-    materialCount = 0;
+    material = nullptr;
 
     IBO = 0;
     VBO = 0;
@@ -82,11 +80,10 @@ void Mesh::allocateIndices(size_t count)
     indexCount = count;
 }
 
-void Mesh::allocateMaterials(size_t count)
+void Mesh::createMaterial()
 {
-    delete[] materials;
-    materials = new Material[count];
-    materialCount = count;
+    delete[] material;
+    material = new Material();
 }
 
 void Mesh::generateGLBuffers()

@@ -30,7 +30,7 @@ struct Material {
 uniform Light u_Light;
 uniform Material u_Material;
 
-uniform vec2 u_Dimensions; // dimensions de la fenetre
+// uniform vec2 u_Dimensions; // dimensions de la fenetre
 
 // Fonctions ===================================================
 vec3 ambient() {

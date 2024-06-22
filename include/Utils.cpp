@@ -32,6 +32,7 @@ struct IndexHash
  */
 vector<unique_ptr<Mesh>> Utils::load_obj(const std::string &filename, std::string mtl_basepath)
 {
+    cout << "==================================================" << endl;
     // CHARGEMENT DE L'OBJ ===================================================
     cout << "Try loading OBJ " << filename << endl;
     tinyobj::attrib_t attrib;
@@ -46,7 +47,7 @@ vector<unique_ptr<Mesh>> Utils::load_obj(const std::string &filename, std::strin
     }
 
     Utils::LogLoadObjInfo(attrib, shapes, materials);
-
+    
     vector<unique_ptr<Mesh>> meshes;
     meshes.reserve(shapes.size());
     unordered_map<IndexTuple, int, IndexHash> index_map;
@@ -55,8 +56,7 @@ vector<unique_ptr<Mesh>> Utils::load_obj(const std::string &filename, std::strin
     {
         size_t index_offset = 0;
         tinyobj::shape_t shape = shapes[s];
-        cout << "\n- Shape " << shape.name << " (nb face: " << shape.mesh.num_face_vertices.size() << " & total indices: " << shape.mesh.indices.size() << ")" << endl;
-
+        cout << "- Shape " << shape.name << " (nb face: " << shape.mesh.num_face_vertices.size() << " & total indices: " << shape.mesh.indices.size() << ")" << endl;
         int vertexCount = 0;
         vector<Vertex> temp_vertices;
         vector<uint32_t> temp_indices;
@@ -130,45 +130,42 @@ vector<unique_ptr<Mesh>> Utils::load_obj(const std::string &filename, std::strin
         }
 #pragma endregion
 
-// CREATION DES MATERIAL ===================================================
-#pragma region RECUPERATION DES MATERIALS
-        vector<Material> temp_materials;
-        for (size_t i = 0; i < materials.size(); i++)
-        {
-            Material material;
-            tinyobj::material_t mat = materials[i];
-            material.asset_path = mtl_basepath;
-            material.texture_filename = (mat.ambient_texname.empty() ? mat.diffuse_texname : mat.ambient_texname);
-            material.specular_texture_filename = mat.specular_texname;
-
-            material.ambient = vec3(mat.ambient[0], mat.ambient[1], mat.ambient[2]);
-            material.diffuse = vec3(mat.diffuse[0], mat.diffuse[1], mat.diffuse[2]);
-            material.specular = vec3(mat.specular[0], mat.specular[1], mat.specular[2]);
-            material.shininess = mat.shininess;
-
-            temp_materials.push_back(material);
-        }
-#pragma endregion
-
 #pragma region CREATION DU MESH
         unique_ptr<Mesh> new_mesh_pt = make_unique<Mesh>();
+        new_mesh_pt->name = shape.name;
 
         new_mesh_pt->allocateVertices(temp_vertices.size());
         new_mesh_pt->allocateIndices(temp_indices.size());
         memcpy(new_mesh_pt->vertices, temp_vertices.data(), temp_vertices.size() * sizeof(Vertex));
         memcpy(new_mesh_pt->indices, temp_indices.data(), temp_indices.size() * sizeof(uint32_t));
+#pragma endregion
 
-        new_mesh_pt->materialCount = temp_materials.size();
-        new_mesh_pt->allocateMaterials(temp_materials.size());
-        memcpy(new_mesh_pt->materials, temp_materials.data(), temp_materials.size() * sizeof(Material));
+#pragma region RECUPERATION DES MATERIALS
+        if (shape.mesh.material_ids.size() > 0)
+        {
+            int material_id = shape.mesh.material_ids[0];
+            tinyobj::material_t mat = materials[material_id];
 
-        // DEBUG ===================================================
+            new_mesh_pt->createMaterial();
+            Material* material = new_mesh_pt->material;
+            material->asset_path = mtl_basepath;
+            material->texture_filename = (mat.ambient_texname.empty() ? mat.diffuse_texname : mat.ambient_texname);
+            material->specular_texture_filename = mat.specular_texname;
+
+            material->ambient = vec3(mat.ambient[0], mat.ambient[1], mat.ambient[2]);
+            material->diffuse = vec3(mat.diffuse[0], mat.diffuse[1], mat.diffuse[2]);
+            material->specular = vec3(mat.specular[0], mat.specular[1], mat.specular[2]);
+            material->shininess = mat.shininess;
+        }
+#pragma endregion
+        // DEBUG ==============================================
         // Utils::LogMeshInfo(new_mesh_pt, shape.name); // Ne pas activer s'il y a beaucoup de vertices
 
-        // SAVE MESH ===================================================
+        // SAVE MESH ==========================================
         meshes.push_back(std::move(new_mesh_pt));
     }
-    // cout << "Success Loaded Shape count : " << meshes.size() << endl;
+    cout << "Success Loaded file - Shape count : " << meshes.size() << endl << endl;
+    cout << "==================================================" << endl;
     return meshes;
 }
 
@@ -178,8 +175,6 @@ void Utils::LogLoadObjInfo(const tinyobj::attrib_t &attrib, const vector<tinyobj
     cout << "  Total Vertices count : " << attrib.vertices.size() << endl;
     cout << "  Total Normals count : " << attrib.normals.size() << endl;
     cout << "  Total Texcoords count : " << attrib.texcoords.size() << endl;
-    cout << endl;
-    cout << "Total Shapes count : " << shapes.size() << endl;
     cout << endl;
     cout << "Total Materials count : " << materials.size() << endl;
     for (size_t i = 0; i < materials.size(); i++)
@@ -200,11 +195,13 @@ void Utils::LogLoadObjInfo(const tinyobj::attrib_t &attrib, const vector<tinyobj
         std::cout << "  Specular: " << mat.specular[0] << ", " << mat.specular[1] << ", " << mat.specular[2] << endl;
         std::cout << "  Shininess: " << mat.shininess << endl;
     }
+    cout << endl;
+    cout << "Total Shapes count : " << shapes.size() << endl;
 }
 
 void Utils::LogMeshInfo(const unique_ptr<Mesh> &mesh, const string &name)
 {
-    cout << "====================================================================" << endl;
+    cout << ".................................................." << endl;
     cout << "LOADED Mesh Info (" << name << "):" << endl;
     cout << "  Vertices count : " << mesh->vertexCount << endl;
     cout << "  Indices count : " << mesh->indexCount << endl;
@@ -218,10 +215,6 @@ void Utils::LogMeshInfo(const unique_ptr<Mesh> &mesh, const string &name)
     // }
     // MATERIAL
     cout << endl;
-    cout << "  Material count : " << mesh->materialCount << endl;
-    for (size_t i = 0; i < mesh->materialCount; i++)
-    {
-        mesh->materials[i].logInfo();
-    }
-    cout << "====================================================================" << endl;
+    mesh->material->logInfo();
+    cout << ".................................................." << endl;
 }

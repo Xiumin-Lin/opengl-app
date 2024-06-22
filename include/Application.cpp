@@ -33,7 +33,7 @@ void Application::Initialize(GLFWwindow *window, int width, int height, const st
 #endif
 #pragma region TEST VAO in OpenGL 2.1
     /**
-     * NB: En OpenGL 2.1, VAO est disponible en activant l'option glewExperimental = GL_TRUE 
+     * NB: En OpenGL 2.1, VAO est disponible en activant l'option glewExperimental = GL_TRUE
      * Cependant, il est impossible d'utiliser plusieurs VAOs en même temps
      * Les valeurs de VAOs apres glGenVertexArrays sont les memes et valent 0
      * */
@@ -46,10 +46,8 @@ void Application::Initialize(GLFWwindow *window, int width, int height, const st
     // }
 #pragma endregion
     // Meshes ================================================================
-    if (object_filename.empty())
-        m_meshes.push_back(std::make_unique<Mesh>(Mesh::GenererRectangle())); // default mesh
-    else
-        m_meshes = Utils::load_obj(object_filename, mtl_basepath);
+    if (object_filename.empty()) m_meshes.push_back(std::make_unique<Mesh>(Mesh::GenererRectangle())); // default mesh
+    else m_meshes = Utils::load_obj(object_filename, mtl_basepath);
 
     if (m_meshes.empty()) { cerr << "No mesh loaded" << endl; exit(1); }
     cout << "Application Loaded " << m_meshes.size() << " meshes" << endl;
@@ -59,18 +57,17 @@ void Application::Initialize(GLFWwindow *window, int width, int height, const st
     const int POSITION = glGetAttribLocation(m_basicProgram.GetProgram(), "a_Position");
     const int NORMAL = glGetAttribLocation(m_basicProgram.GetProgram(), "a_Normal");
     const int TEX_COORD = glGetAttribLocation(m_basicProgram.GetProgram(), "a_TexCoords");
-    for (std::unique_ptr<Mesh>& mesh_pt : m_meshes)
+    for (std::unique_ptr<Mesh> &mesh_pt : m_meshes)
     {
+        cout << "> Setup Mesh: " << mesh_pt->name << endl;
         mesh_pt->setAttribLocation(POSITION, NORMAL, TEX_COORD);
         mesh_pt->generateGLBuffers();
 
-        for (size_t i = 0; i < mesh_pt->materialCount; i++)
-        {
-            Material& mat = mesh_pt->materials[i];
-            // Load texture and specular texture
-            mat.tryLoadTexture();
-            mat.tryLoadSpecularTexture();
-        }
+        // Load texture and specular texture
+        Material *mat = mesh_pt->material;
+        mat->tryLoadTexture();
+        mat->tryLoadSpecularTexture();
+        cout << endl;
     }
 }
 
@@ -82,14 +79,16 @@ void Application::Render()
     uint32_t program = m_basicProgram.GetProgram();
     glUseProgram(program);
 
-    // Projection -----------------------------------------------
+#pragma region PROJECTION MATRIX-------------------------------
     // compute at each windows resize -> ResizeWindow(int width, int height)
+#pragma endregion
 
-    // Camera View ----------------------------------------------
+#pragma region CAMERA VIEW MATRIX------------------------------
     m_viewMatrix.loadIdentity();
     m_viewMatrix.translate(0.0f, 0.0f, -40.f);
+#pragma endregion
 
-    // Model  ---------------------------------------------------
+#pragma region MODEL MATRIX-------------------------------------
     float time = static_cast<float>(glfwGetTime());
     float angle = static_cast<float>(time) * 20.0f;
     // float move = sin(static_cast<float>(time));
@@ -103,22 +102,24 @@ void Application::Render()
     m_modelMatrix.rotateY(angle);
     // -------------- Translate --------------
     // m_modelMatrix.translate(move, 0.0f, 0.0f);
+#pragma endregion 
 
-    // Send uniforms Matrix -------------------------------------
+#pragma region SEND UNIFORM MATRIX-----------------------------
     glUniformMatrix4fv(glGetUniformLocation(program, "u_Model"), 1, GL_FALSE, m_modelMatrix.data);
     glUniformMatrix4fv(glGetUniformLocation(program, "u_View"), 1, GL_FALSE, m_viewMatrix.data);
     glUniformMatrix4fv(glGetUniformLocation(program, "u_Projection"), 1, GL_FALSE, m_projectionMatrix.data);
 
     glUniformMatrix4fv(glGetUniformLocation(program, "u_NormalMatrix"), 1, GL_FALSE, m_modelMatrix.data);
 
-    glUniform2f(glGetUniformLocation(program, "u_Dimensions"), float(m_windowWidth), float(m_windowHeight));
+    // glUniform2f(glGetUniformLocation(program, "u_Dimensions"), float(m_windowWidth), float(m_windowHeight));
+#pragma endregion
 
-    // Light -----------------------------------------------------
-    GLfloat ambientColor[] = {0.5f, 0.5f, 0.5f};    // Lumière ambiante faible
+#pragma region LIGHT ------------------------------------------
+    GLfloat ambientColor[] = {0.5f, 0.5f, 0.5f}; // Lumière ambiante faible
     GLfloat cameraPos[] = {m_viewMatrix.data[12], m_viewMatrix.data[13], m_viewMatrix.data[14]};
 
-    GLfloat lightDirection[] = {0.0f, 1.0f, 1.0f};  // Direction de la lumière
-    GLfloat lightColor[] = {0.3f, 0.9f, 0.7f};      // Couleur de la source lumineuse
+    GLfloat lightDirection[] = {0.0f, 1.0f, 1.0f}; // Direction de la lumière
+    GLfloat lightColor[] = {0.3f, 0.9f, 0.7f};     // Couleur de la source lumineuse
 
     GLfloat matAmbient[] = {0.0f, 0.0f, 1.0f};
     GLfloat matDiffuse[] = {0.4f, 0.6f, 0.8f}; // valeur RGB, indique quel pourcentage de RGB est réfléchi par le matériau
@@ -126,7 +127,7 @@ void Application::Render()
     GLfloat shininess = 8.0f;
 
     glUniform3fv(glGetUniformLocation(program, "u_ViewPosition"), 1, cameraPos);
-    
+
     glUniform3fv(glGetUniformLocation(program, "u_Light.direction"), 1, lightDirection);
     glUniform3fv(glGetUniformLocation(program, "u_Light.ambientColor"), 1, ambientColor);
     glUniform3fv(glGetUniformLocation(program, "u_Light.diffuseColor"), 1, lightColor);
@@ -136,31 +137,31 @@ void Application::Render()
     glUniform3fv(glGetUniformLocation(program, "u_Material.diffuseColor"), 1, matDiffuse);
     glUniform3fv(glGetUniformLocation(program, "u_Material.specularColor"), 1, matSpecular);
     glUniform1f(glGetUniformLocation(program, "u_Material.shininess"), shininess);
-    
-    for (std::unique_ptr<Mesh>& mesh_pt : m_meshes)
+#pragma endregion
+
+#pragma region DRAW -------------------------------------------
+    for (std::unique_ptr<Mesh> &mesh_pt : m_meshes)
     {
-        // Bind Texture ---------------------------------------------- // TODO: Factoriser
-        for (size_t i = 0; i < mesh_pt->materialCount; i++)
-        {
-            Material& mat = mesh_pt->materials[i];
-            glUniform1i(glGetUniformLocation(program, "u_Material.hasTexture"), mat.has_texture ? 1 : 0);
-            if (mat.has_texture) mat.texture->bind(GL_TEXTURE0, glGetUniformLocation(program, "u_Texture"), 0);
+        // Bind Texture --------------------------------------- // TODO: Factoriser
+        Material *mat = mesh_pt->material;
+        glUniform1i(glGetUniformLocation(program, "u_Material.hasTexture"), mat->has_texture ? 1 : 0);
+        if (mat->has_texture)
+            mat->texture->bind(GL_TEXTURE0, glGetUniformLocation(program, "u_Texture"), 0);
 
-            glUniform1i(glGetUniformLocation(program, "u_Material.hasTextureSpecular"), mat.has_specular_texture ? 1 : 0);
-            if (mat.has_specular_texture) mat.specular_texture->bind(GL_TEXTURE0, glGetUniformLocation(program, "u_TextureSpecular"), 1);
-        }
+        glUniform1i(glGetUniformLocation(program, "u_Material.hasTextureSpecular"), mat->has_specular_texture ? 1 : 0);
+        if (mat->has_specular_texture)
+            mat->specular_texture->bind(GL_TEXTURE0, glGetUniformLocation(program, "u_TextureSpecular"), 1);
 
-        // Draw ------------------------------------------------------
+        // Draw -----------------------------------------------
         mesh_pt->draw();
-        
-        // Unbind Texture -------------------------------------------- // TODO: Factoriser
-        for (size_t i = 0; i < mesh_pt->materialCount; i++)
-        {
-            Material& mat = mesh_pt->materials[i];
-            if (mat.has_texture) mat.texture->unbind();
-            if (mat.has_specular_texture) mat.specular_texture->unbind();
-        }
+
+        // Unbind Texture ------------------------------------- // TODO: Factoriser
+        if (mat->has_texture)
+            mat->texture->unbind();
+        if (mat->has_specular_texture)
+            mat->specular_texture->unbind();
     }
+#pragma endregion
     // Il on suppose que la phase d'echange des buffers front et back
     // le « swap buffers » est effectuee juste apres
 }
