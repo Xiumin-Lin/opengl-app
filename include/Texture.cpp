@@ -1,25 +1,20 @@
 #include "Texture.h"
 #include "../vendor/stb/stb_image.h"
-#include <iostream>
 
 Texture::Texture() : textureID(0) {}
 
 Texture::~Texture()
 {
-    DeleteTexture();
+    deleteTexture();
 }
 
-bool Texture::Load(const std::string &filename)
+bool Texture::load(const std::string &filename)
 {
     int texWidth, texHeight, texChannels;
     stbi_set_flip_vertically_on_load(true);
     stbi_uc *texBuffer = stbi_load(filename.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
     bool isTexLoaded = texBuffer != nullptr;
-    if (!isTexLoaded)
-    {
-        std::cerr << "Failed to load texture: " << filename << std::endl;
-        return false;
-    }
+    if (!isTexLoaded) return false;
 
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_2D, textureID);
@@ -40,22 +35,22 @@ bool Texture::Load(const std::string &filename)
     return true;
 }
 
-void Texture::Bind(GLenum textureUnit, int texPosition, int spot)
+void Texture::bind(GLenum textureUnit, int texPosition, int slot)
 {
-    glActiveTexture(textureUnit + spot);
+    glActiveTexture(textureUnit + slot);
     glBindTexture(GL_TEXTURE_2D, textureID);
     // le shader va lire l’unité de texture 0 -> GL_TEXTURE0
-    glUniform1i(texPosition, spot);
+    glUniform1i(texPosition, slot);
 }
 
-void Texture::Unbind()
+void Texture::unbind()
 {
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void Texture::DeleteTexture()
+void Texture::deleteTexture()
 {
-    if (textureID != 0)
+    if (textureID > 0)
     {
         glDeleteTextures(1, &textureID);
         textureID = 0;

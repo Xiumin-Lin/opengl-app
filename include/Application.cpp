@@ -31,7 +31,12 @@ void Application::Initialize(GLFWwindow *window, int width, int height, const st
 #ifdef WIN32
     wglSwapIntervalEXT(1);
 #endif
-    // TEST VAO ============================================================
+#pragma region TEST VAO in OpenGL 2.1
+    /**
+     * NB: En OpenGL 2.1, VAO est disponible en activant l'option glewExperimental = GL_TRUE 
+     * Cependant, il est impossible d'utiliser plusieurs VAOs en même temps
+     * Les valeurs de VAOs apres glGenVertexArrays sont les memes et valent 0
+     * */
     // int count = 5;
     // GLuint* VAOs = new GLuint[count];
     // glGenVertexArrays(count, VAOs);
@@ -39,17 +44,12 @@ void Application::Initialize(GLFWwindow *window, int width, int height, const st
     // {
     //     cout << "VAO[" << i << "] = " << VAOs[i] << endl;
     // }
-
-    /**
-     * NB: En OpenGL 2.1, VAO est disponible en activant l'option glewExperimental = GL_TRUE 
-     * Cependant, il est impossible d'utiliser plusieurs VAOs en même temps
-     * Les valeurs de VAOs apres glGenVertexArrays sont les memes et valent 0
-     * */
+#pragma endregion
     // Meshes ================================================================
     if (object_filename.empty())
         m_meshes.push_back(std::make_unique<Mesh>(Mesh::GenererRectangle())); // default mesh
     else
-        m_meshes = Utils::load_obj(object_filename.c_str(), mtl_basepath.c_str());
+        m_meshes = Utils::load_obj(object_filename, mtl_basepath);
 
     if (m_meshes.empty()) { cerr << "No mesh loaded" << endl; exit(1); }
     cout << "Application Loaded " << m_meshes.size() << " meshes" << endl;
@@ -63,17 +63,15 @@ void Application::Initialize(GLFWwindow *window, int width, int height, const st
     {
         mesh_pt->setAttribLocation(POSITION, NORMAL, TEX_COORD);
         mesh_pt->generateGLBuffers();
+
+        for (size_t i = 0; i < mesh_pt->materialCount; i++)
+        {
+            Material& mat = mesh_pt->materials[i];
+            // Load texture and specular texture
+            mat.tryLoadTexture();
+            mat.tryLoadSpecularTexture();
+        }
     }
-
-    // Texture ===============================================================
-    m_texture = new Texture();
-
-    if (m_texture->Load("./assets/brick.png")) cout << "Texture 1 loaded" << endl;
-    else { cerr << "Texture 1 not loaded" << endl; exit(1); }
-
-    m_specular_texture = new Texture();
-    if (m_specular_texture->Load("./assets/brick-specular.png")) cout << "Specular Texture loaded" << endl;
-    else { cerr << "Specular Texture not loaded" << endl; exit(1); }
 }
 
 void Application::Render()
@@ -138,18 +136,31 @@ void Application::Render()
     glUniform3fv(glGetUniformLocation(program, "u_Material.diffuseColor"), 1, matDiffuse);
     glUniform3fv(glGetUniformLocation(program, "u_Material.specularColor"), 1, matSpecular);
     glUniform1f(glGetUniformLocation(program, "u_Material.shininess"), shininess);
-
-    // Texture ---------------------------------------------------
-    m_texture->Bind(GL_TEXTURE0, glGetUniformLocation(program, "u_Texture"));
-    m_specular_texture->Bind(GL_TEXTURE0, glGetUniformLocation(program, "u_Texture_Specular"), 1);
-
-    // Draw ------------------------------------------------------
+    
     for (std::unique_ptr<Mesh>& mesh_pt : m_meshes)
     {
+        // Bind Texture ---------------------------------------------- // TODO: Factoriser
+        for (size_t i = 0; i < mesh_pt->materialCount; i++)
+        {
+            Material& mat = mesh_pt->materials[i];
+            glUniform1i(glGetUniformLocation(program, "u_Material.hasTexture"), mat.has_texture ? 1 : 0);
+            if (mat.has_texture) mat.texture->bind(GL_TEXTURE0, glGetUniformLocation(program, "u_Texture"), 0);
+
+            glUniform1i(glGetUniformLocation(program, "u_Material.hasTextureSpecular"), mat.has_specular_texture ? 1 : 0);
+            if (mat.has_specular_texture) mat.specular_texture->bind(GL_TEXTURE0, glGetUniformLocation(program, "u_TextureSpecular"), 1);
+        }
+
+        // Draw ------------------------------------------------------
         mesh_pt->draw();
+        
+        // Unbind Texture -------------------------------------------- // TODO: Factoriser
+        for (size_t i = 0; i < mesh_pt->materialCount; i++)
+        {
+            Material& mat = mesh_pt->materials[i];
+            if (mat.has_texture) mat.texture->unbind();
+            if (mat.has_specular_texture) mat.specular_texture->unbind();
+        }
     }
-    m_texture->Unbind();
-    m_specular_texture->Unbind();
     // Il on suppose que la phase d'echange des buffers front et back
     // le « swap buffers » est effectuee juste apres
 }
@@ -157,8 +168,6 @@ void Application::Render()
 void Application::Terminate()
 {
     m_meshes.clear();
-    delete m_texture;
-    delete m_specular_texture;
     m_basicProgram.Destroy();
 }
 

@@ -7,9 +7,8 @@ varying vec2 v_TexCoords;
 
 // Variables uniformes ==========================================
 uniform vec3 u_ViewPosition; // Position de la caméra
-
 uniform sampler2D u_Texture;
-uniform sampler2D u_Texture_Specular;
+uniform sampler2D u_TextureSpecular;
 
 struct Light {
     vec3 direction;     // I
@@ -23,6 +22,9 @@ struct Material {
     vec3 diffuseColor;   // kd pour la couleur du mat diffuse
     vec3 specularColor;  // ks pour la couleur du mat spéculaire
     float shininess;     // Facteur de brillance
+
+    int hasTexture;
+    int hasTextureSpecular;
 };
 
 uniform Light u_Light;
@@ -60,13 +62,18 @@ vec3 specular(vec3 N, vec3 L, vec3 V) {
     // Phong model
     // vec3 R = reflect(-L, N); // L doit être inversé car reflect s'attend à ce que N pointe vers la surface
     // float spec = pow(max(dot(R, V), 0.0), u_Material.shininess);
-    // return spec * u_Material.specularColor * u_Light.specularColor;
+    // return spec * u_Light.specularColor * u_Material.specularColor;
 
     // Blinn-Phong model
     vec3 H = normalize(L + V);
     float NdotH = max(dot(N, H), 0.0);
-    float specularComponent = pow(NdotH, u_Material.shininess);
-    return specularComponent * u_Light.specularColor;
+    float spec = pow(NdotH, u_Material.shininess);
+
+    if (u_Material.hasTextureSpecular == 1) {
+        return spec * u_Light.specularColor * texture2D(u_TextureSpecular, v_TexCoords).r;
+    }
+    
+    return spec * u_Light.specularColor * u_Material.specularColor;
 }
 
 // Main ========================================================
@@ -113,10 +120,15 @@ void main() {
     vec3 diffuseColor = diffuse(N, L);
     vec3 specularColor = specular(N, L, V);
 
-    vec4 texColor = texture2D(u_Texture, v_TexCoords);
-    vec4 texSpecularColor = texture2D(u_Texture_Specular, v_TexCoords);
-    vec3 result = texColor.rgb * (ambientColor + diffuseColor) + (specularColor * texSpecularColor.rgb);
-    gl_FragColor = vec4(result, texColor.a);
+    if (u_Material.hasTexture == 1) {
+        vec4 texColor = texture2D(u_Texture, v_TexCoords);
+        vec3 result = texColor.rgb * (ambientColor + diffuseColor) + specularColor;
+        gl_FragColor = vec4(result, texColor.a);
+    } else {
+        vec3 result = ambientColor + diffuseColor + specularColor;
+        gl_FragColor = vec4(result, 1.0);
+    }
+    
 
     // Gradient color -------------------------------------------------------
     // Calculez une couleur de base à partir des valeurs absolues des normales.

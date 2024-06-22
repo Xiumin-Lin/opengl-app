@@ -26,8 +26,12 @@ Mesh &Mesh::operator=(Mesh &&other) noexcept
 }
 
 void Mesh::deleteMesh() {
-    delete[] vertices;
-    delete[] indices;
+    if (vertices != nullptr) delete[] vertices;
+    if (indices != nullptr) delete[] indices;
+    if (materials != nullptr) delete[] materials;
+    vertices = nullptr;
+    indices = nullptr;
+    materials = nullptr;
     deleteGLBuffers();
 }
 
@@ -36,11 +40,9 @@ void Mesh::move(const Mesh& other) {
     indices = other.indices;
     vertexCount = other.vertexCount;
     indexCount = other.indexCount;
-    
-    ambientColor = other.ambientColor;
-    diffuseColor = other.diffuseColor;
-    specularColor = other.specularColor;
-    shininess = other.shininess;
+
+    materials = other.materials;
+    materialCount = other.materialCount;
 
     VBO = other.VBO;
     IBO = other.IBO;
@@ -55,10 +57,10 @@ void Mesh::reset() {
     indices = nullptr;
     vertexCount = 0;
     indexCount = 0;
-    ambientColor = vec3(1.0f, 1.0f, 1.0f);
-    diffuseColor = vec3(1.0f, 1.0f, 1.0f);
-    specularColor = vec3(1.0f, 1.0f, 1.0f);
-    shininess = 8.0f;
+
+    materials = nullptr;
+    materialCount = 0;
+
     IBO = 0;
     VBO = 0;
     positionLocation = -1;
@@ -78,6 +80,13 @@ void Mesh::allocateIndices(size_t count)
     delete[] indices;
     indices = new uint32_t[count];
     indexCount = count;
+}
+
+void Mesh::allocateMaterials(size_t count)
+{
+    delete[] materials;
+    materials = new Material[count];
+    materialCount = count;
 }
 
 void Mesh::generateGLBuffers()

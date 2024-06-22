@@ -30,16 +30,16 @@ struct IndexHash
  * Load an OBJ file and return a vector of Mesh
  * Mesh indices are filled to allow IBO
  */
-vector<unique_ptr<Mesh>> Utils::load_obj(const char *filename, const char *mtl_basepath)
+vector<unique_ptr<Mesh>> Utils::load_obj(const std::string &filename, std::string mtl_basepath)
 {
     // CHARGEMENT DE L'OBJ ===================================================
-    // cout << "Try loading OBJ " << filename << endl;
+    cout << "Try loading OBJ " << filename << endl;
     tinyobj::attrib_t attrib;
     vector<tinyobj::shape_t> shapes;
     vector<tinyobj::material_t> materials;
     string err;
 
-    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, filename, mtl_basepath))
+    if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &err, filename.c_str(), mtl_basepath.c_str()))
     {
         cerr << "LoadOBJ failed: " << err << endl;
         return {}; // return empty vector
@@ -47,7 +47,6 @@ vector<unique_ptr<Mesh>> Utils::load_obj(const char *filename, const char *mtl_b
 
     Utils::LogLoadObjInfo(attrib, shapes, materials);
 
-    // CREATIONS DES MESH ===================================================
     vector<unique_ptr<Mesh>> meshes;
     meshes.reserve(shapes.size());
     unordered_map<IndexTuple, int, IndexHash> index_map;
@@ -56,12 +55,13 @@ vector<unique_ptr<Mesh>> Utils::load_obj(const char *filename, const char *mtl_b
     {
         size_t index_offset = 0;
         tinyobj::shape_t shape = shapes[s];
-        cout << "\nShape " << shape.name << " (nb face: " << shape.mesh.num_face_vertices.size() << " & total indices: " << shape.mesh.indices.size() << ")" << endl;
+        cout << "\n- Shape " << shape.name << " (nb face: " << shape.mesh.num_face_vertices.size() << " & total indices: " << shape.mesh.indices.size() << ")" << endl;
 
         int vertexCount = 0;
         vector<Vertex> temp_vertices;
         vector<uint32_t> temp_indices;
 
+#pragma region RECUPERATION DES VERTICES ET INDICES
         for (size_t f = 0; f < shape.mesh.num_face_vertices.size(); f++)
         {
             size_t nbVertices = size_t(shape.mesh.num_face_vertices[f]);
@@ -128,14 +128,44 @@ vector<unique_ptr<Mesh>> Utils::load_obj(const char *filename, const char *mtl_b
             }
             index_offset += nbVertices;
         }
+#pragma endregion
+
+// CREATION DES MATERIAL ===================================================
+#pragma region RECUPERATION DES MATERIALS
+        vector<Material> temp_materials;
+        for (size_t i = 0; i < materials.size(); i++)
+        {
+            Material material;
+            tinyobj::material_t mat = materials[i];
+            material.asset_path = mtl_basepath;
+            material.texture_filename = (mat.ambient_texname.empty() ? mat.diffuse_texname : mat.ambient_texname);
+            material.specular_texture_filename = mat.specular_texname;
+
+            material.ambient = vec3(mat.ambient[0], mat.ambient[1], mat.ambient[2]);
+            material.diffuse = vec3(mat.diffuse[0], mat.diffuse[1], mat.diffuse[2]);
+            material.specular = vec3(mat.specular[0], mat.specular[1], mat.specular[2]);
+            material.shininess = mat.shininess;
+
+            temp_materials.push_back(material);
+        }
+#pragma endregion
+
+#pragma region CREATION DU MESH
         unique_ptr<Mesh> new_mesh_pt = make_unique<Mesh>();
+
         new_mesh_pt->allocateVertices(temp_vertices.size());
         new_mesh_pt->allocateIndices(temp_indices.size());
         memcpy(new_mesh_pt->vertices, temp_vertices.data(), temp_vertices.size() * sizeof(Vertex));
         memcpy(new_mesh_pt->indices, temp_indices.data(), temp_indices.size() * sizeof(uint32_t));
 
-        // Utils::LogMeshInfo(new_mesh_pt, shape.name);
+        new_mesh_pt->materialCount = temp_materials.size();
+        new_mesh_pt->allocateMaterials(temp_materials.size());
+        memcpy(new_mesh_pt->materials, temp_materials.data(), temp_materials.size() * sizeof(Material));
 
+        // DEBUG ===================================================
+        // Utils::LogMeshInfo(new_mesh_pt, shape.name); // Ne pas activer s'il y a beaucoup de vertices
+
+        // SAVE MESH ===================================================
         meshes.push_back(std::move(new_mesh_pt));
     }
     // cout << "Success Loaded Shape count : " << meshes.size() << endl;
@@ -158,30 +188,40 @@ void Utils::LogLoadObjInfo(const tinyobj::attrib_t &attrib, const vector<tinyobj
         std::cout << "Material " << i << " (" << mat.name << ")" << endl;
         // AMBIENT
         string ambient_texname = mat.ambient_texname.empty() ? "None" : mat.ambient_texname;
-        std::cout << "  Ambient Texture: " << mat.ambient_texname << endl; 
-        std::cout << "  Ambient: " << mat.ambient[0] << ", " << mat.ambient[1] << ", " << mat.ambient[2] << endl; 
+        std::cout << "  Ambient Texture: " << mat.ambient_texname << endl;
+        std::cout << "  Ambient: " << mat.ambient[0] << ", " << mat.ambient[1] << ", " << mat.ambient[2] << endl;
         // DIFFUSE
         string diffuse_texname = mat.diffuse_texname.empty() ? "None" : mat.diffuse_texname;
-        std::cout << "  Diffuse Texture: " << diffuse_texname << endl; 
-        std::cout << "  Diffuse: " << mat.diffuse[0] << ", " << mat.diffuse[1] << ", " << mat.diffuse[2] << endl; 
+        std::cout << "  Diffuse Texture: " << diffuse_texname << endl;
+        std::cout << "  Diffuse: " << mat.diffuse[0] << ", " << mat.diffuse[1] << ", " << mat.diffuse[2] << endl;
         // SPECULAR
         string specular_texname = mat.specular_texname.empty() ? "None" : mat.specular_texname;
-        std::cout << "  Specular Texture: " << mat.specular_texname << endl; 
-        std::cout << "  Specular: " << mat.specular[0] << ", " << mat.specular[1] << ", " << mat.specular[2] << endl; 
-        std::cout << "  Shininess: " << mat.shininess << endl; 
+        std::cout << "  Specular Texture: " << mat.specular_texname << endl;
+        std::cout << "  Specular: " << mat.specular[0] << ", " << mat.specular[1] << ", " << mat.specular[2] << endl;
+        std::cout << "  Shininess: " << mat.shininess << endl;
     }
 }
 
 void Utils::LogMeshInfo(const unique_ptr<Mesh> &mesh, const string &name)
 {
-    cout << "Mesh Info (" << name << "):" << endl;
+    cout << "====================================================================" << endl;
+    cout << "LOADED Mesh Info (" << name << "):" << endl;
     cout << "  Vertices count : " << mesh->vertexCount << endl;
     cout << "  Indices count : " << mesh->indexCount << endl;
-    for (size_t i = 0; i < mesh->indexCount; i++)
+    // VERTICES
+    // for (size_t i = 0; i < mesh->indexCount; i++)
+    // {
+    //     Vertex v = mesh->vertices[mesh->indices[i]];
+    //     cout << "  " << i << ": mesh->vertices[" << mesh->indices[i] << "] = x: " << v.position.x << " y: " << v.position.y << " z: " << v.position.z;
+    //     cout << " nx: " << v.normal.x << " ny: " << v.normal.y << " nz: " << v.normal.z;
+    //     cout << " tx: " << v.texcoords.x << " ty: " << v.texcoords.y << endl;
+    // }
+    // MATERIAL
+    cout << endl;
+    cout << "  Material count : " << mesh->materialCount << endl;
+    for (size_t i = 0; i < mesh->materialCount; i++)
     {
-        Vertex v = mesh->vertices[mesh->indices[i]];
-        cout << "  " << i << ": mesh->vertices[" << mesh->indices[i] << "] = x: " << v.position.x << " y: " << v.position.y << " z: " << v.position.z;
-        cout << " nx: " << v.normal.x << " ny: " << v.normal.y << " nz: " << v.normal.z;
-        cout << " tx: " << v.texcoords.x << " ty: " << v.texcoords.y << endl;
+        mesh->materials[i].logInfo();
     }
+    cout << "====================================================================" << endl;
 }

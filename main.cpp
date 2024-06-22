@@ -51,7 +51,7 @@ int main(void)
 
     // ---------------------------------------------------------------
     Application app;
-    app.Initialize(window, WIDTH, HEIGHT, "assets/teapot.obj", "assets/");
+    app.Initialize(window, WIDTH, HEIGHT, "assets/teapot/teapot.obj", "assets/teapot/");
     
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))

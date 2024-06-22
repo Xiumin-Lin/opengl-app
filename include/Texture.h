@@ -6,16 +6,15 @@
 
 class Texture {
 public:
+    GLuint textureID;
+
     Texture();
     ~Texture();
 
-    bool Load(const std::string& filename);
-    void Bind(GLenum textureUnit, int texPosition, int spot = 0);
-    void Unbind();
-    void DeleteTexture();
-
-private:
-    GLuint textureID;
+    bool load(const std::string& filename);
+    void bind(GLenum textureUnit, int texPosition, int slot = 0);
+    void unbind();
+    void deleteTexture();
 };
 
 #endif // TEXTURE_H
