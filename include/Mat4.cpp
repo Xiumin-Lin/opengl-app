@@ -1,6 +1,4 @@
 #include "Mat4.h"
-#include <cmath>
-#include <cstring>
 
 using namespace std;
 

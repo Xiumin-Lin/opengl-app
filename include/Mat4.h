@@ -1,6 +1,10 @@
 #ifndef MAT4_H
 #define MAT4_H
 
+#define _USE_MATH_DEFINES
+#include <cmath>
+#include <cstring>
+
 #include "Mat3.h"
 #include "Vertex.h"
 

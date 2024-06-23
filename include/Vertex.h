@@ -1,6 +1,8 @@
 #ifndef VERTEX_H
 #define VERTEX_H
 
+#define _USE_MATH_DEFINES
+#include <cmath>
 using namespace std;
 
 struct vec2
@@ -47,7 +49,7 @@ struct vec3
 
     static vec3 normalize(const vec3 &v)
     {
-        float norm = sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
+        float norm = std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z);
         if (norm == 0) return vec3(0, 0, 0);  // Retourner un vecteur nul si la norme est zéro
         return vec3(v.x / norm, v.y / norm, v.z / norm);
     }
