@@ -69,23 +69,17 @@ void CameraOrbitale::keyCallback(int key, int scancode, int action, int mods)
         {
         case GLFW_KEY_Z:
         case GLFW_KEY_W:
-            m_target += m_up * m_speed; // Forward
+            m_target -= m_up * m_speed; // Up
             break;
         case GLFW_KEY_S:
-            m_target -= m_up * m_speed; // Backward
+            m_target += m_up * m_speed; // Down
             break;
         case GLFW_KEY_A:
         case GLFW_KEY_Q:
-            m_target -= vec3::normalize(vec3::cross(getDirection(), m_up)) * m_speed; // Left
+            m_target += vec3::normalize(vec3::cross(getDirection(), m_up)) * m_speed; // Left
             break;
         case GLFW_KEY_D:
-            m_target += vec3::normalize(vec3::cross(getDirection(), m_up)) * m_speed; // Right
-            break;
-        case GLFW_KEY_SPACE:
-            m_target.y -= m_speed; // Up    
-            break;
-        case GLFW_KEY_LEFT_CONTROL:
-            m_target.y += m_speed; // Down
+            m_target -= vec3::normalize(vec3::cross(getDirection(), m_up)) * m_speed; // Right
             break;
         }
     }
