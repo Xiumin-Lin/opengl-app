@@ -12,19 +12,9 @@ void CameraOrbitale::update()
     m_viewMatrix.lookAt(m_position, m_target, m_up);
 }
 
-void CameraOrbitale::setProjectionMatrix(float fov, float aspectRatio, float nearPlane, float farPlane)
-{
-    Mat4::perspective(&m_projectionMatrix, fov, aspectRatio, nearPlane, farPlane);
-}
-
 const Mat4 &CameraOrbitale::getViewMatrix() const
 {
     return m_viewMatrix;
-}
-
-const Mat4 &CameraOrbitale::getProjectionMatrix() const
-{
-    return m_projectionMatrix;
 }
 
 vec3 CameraOrbitale::calculatePosition() const

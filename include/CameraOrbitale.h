@@ -13,9 +13,7 @@ public:
     CameraOrbitale(const vec3& target, float initialRadius, float initialPhi, float initialTheta);
 
     void update();
-    void setProjectionMatrix(float fov, float aspectRatio, float nearPlane, float farPlane);
     const Mat4& getViewMatrix() const;
-    const Mat4& getProjectionMatrix() const;
 
     const vec3& getPosition() const { return m_position; }
     const vec3 getDirection() const { return m_target - m_position; }
@@ -35,7 +33,6 @@ private:
     float m_theta;
 
     Mat4 m_viewMatrix;
-    Mat4 m_projectionMatrix;
 
     vec3 calculatePosition() const;
 };

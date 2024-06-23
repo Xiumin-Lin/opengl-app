@@ -16,12 +16,12 @@ clean:
 
 # MingWIN makefile for OpenGL application
 # BIN = opengl_app.exe
-# FLAGS = -std=c++11 -Wall -pedantic -fmessage-length=0
-# INC = -I../libs/GLFW/include -I../libs/GLEW/include -Ivendor
+# FLAGS = -std=c++14 -Wall -pedantic -fmessage-length=0
+# INCLUDE = -I../libs/GLFW/include -I../libs/GLEW/include -Ivendor
 # LOC_LIB = -L../libs/GLFW/lib/lib-mingw-w64 -L../libs/GLEW/lib/Release/x64 -lglfw3dll -lglew32s -lopengl32
 
 # all:
-# 	${CC} ${FLAGS} -o ${BIN} ${SRC} ${INC} ${LOC_LIB}
+# 	${CC} ${FLAGS} -o ${BIN} ${SRC} ${INCLUDE} ${LOC_LIB}
 
 # clean:
 # 	del /F /Q ${BIN}

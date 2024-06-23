@@ -188,26 +188,26 @@ void Application::Render()
 #pragma region WORLD MATRIX = Translate x Rotate x Scale (repecter l ordre)
         // World Matrix = Translate * Rotate * Scale (dans l'ordre: scale > rotate > translate)
         Mat4 worldMatrix = Mat4();
-        float worldMatrix_angle = static_cast<float>(time) * 20.0f;
-        float worldMatrix_move = sin(static_cast<float>(time)) * 10.0f;
+        float scale = sin(static_cast<float>(time)) * 0.5f + 0.5f;  // 0.5 < scale < 1.0
+        float angle = static_cast<float>(time) * 20.0f;
+        float move = sin(static_cast<float>(time)) * 10.0f;
         // -------------- Scale ------------------
-        worldMatrix.scale(1.0f, 1.0f, 1.0f);
+        worldMatrix.scale(scale, scale, scale);
         // -------------- Rotate -----------------
         worldMatrix.rotateX(-90);
         // worldMatrix.rotateY(worldMatrix_angle);
-        worldMatrix.rotateZ(worldMatrix_angle);
+        worldMatrix.rotateZ(angle);
         // -------------- Translate --------------
-        worldMatrix.translate(worldMatrix_move, 0.0f, 0.0f);
+        worldMatrix.translate(30.0f, 0.0f, move); // sur le coté et en mouvement de haut en bas
 
         Mat4 worldMatrix_yoda = Mat4();
-        // float worldMatrix_yoda_move = sin(static_cast<float>(time)) * 2000.0f;
         // -------------- Scale ------------------
         worldMatrix_yoda.scale(0.01f, 0.01f, 0.01f); // yoda is very big, active this scale and initial radius of the camera to 50
         // -------------- Rotate -----------------
         worldMatrix_yoda.rotateX(-90);
-        worldMatrix_yoda.rotateZ(-worldMatrix_angle);
+        worldMatrix_yoda.rotateZ(-angle);
         // -------------- Translate --------------
-        worldMatrix_yoda.translate(0.0f, -5000.0f, 0.0f);
+        // worldMatrix_yoda.translate(0.0f, 0.0f, 0.0f);
 #pragma endregion
 
 #pragma region DRAW -------------------------------------------
