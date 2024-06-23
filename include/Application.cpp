@@ -30,21 +30,20 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos) {
     if (app != nullptr)
     {
         app->GetCamera().mouseCallback(xpos, ypos, isFirstClick);
+        if (isFirstClick) isFirstClick = false;
     }
 }
 
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
         // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-        if (isFirstClick) {
-            isFirstClick = false;
-        }
+        isFirstClick = true;
         isDragging = true;
     }
     else if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
         // glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         isDragging = false;
-        isFirstClick = true;
+        isFirstClick = false;
     }
 }
 
