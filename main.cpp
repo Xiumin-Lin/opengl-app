@@ -7,7 +7,7 @@
 const int WIDTH = 800;
 const int HEIGHT = 800;
 
-int main(void)
+int main(int argc, char** argv)
 {
     GLFWwindow *window;
     /* Initialize the library */
@@ -58,7 +58,21 @@ int main(void)
 #pragma endregion
     // ---------------------------------------------------------------
     Application app;
-    app.Initialize(window, WIDTH, HEIGHT, 50, "assets/yoda/yoda.obj", "assets/yoda/");
+    // chemins par defaut
+    std::string objPath = "assets/teapot/teapot.obj";
+    std::string mtlPath = "assets/teapot/";
+
+    // Vérification et chargement des chemins à partir des arguments
+    if (argc >= 3) {
+        objPath = argv[1];
+        mtlPath = argv[2];
+    } else {
+        std::cout << "Chemin par défaut utilisé car arguments insuffisants" << std::endl;
+        std::cout << "Usage: ./opengl_app.exe [chemin_obj] [chemin_mtl]" << std::endl;
+        std::cout << "Exemple: ./opengl_app.exe assets/teapot/teapot.obj assets/teapot/" << std::endl;
+    }
+
+    app.Initialize(window, WIDTH, HEIGHT, 50, objPath, mtlPath);
     
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))

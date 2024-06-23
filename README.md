@@ -7,6 +7,11 @@ Info:
 - C++14
 - OS: macOS
 
+Requirement:
+- GLEW
+- GLFW
+Le dossier `assets` contient des fichiers .OBJ de tests.
+
 # Paramètres de Configuration pour Affichage d'Objets 3D
 
 ## Paramètres pour `teapot.obj`
@@ -48,12 +53,7 @@ Info:
   - **A:** Déplacer à gauche
   - **S:** Reculer
   - **D:** Déplacer à droite
-- **Montée et descente:**
-  - **Espace:** Monter
-  - **Contrôle:** Descendre
 - **Fonctions supplémentaires:**
   - **Échappe:** Fermer la fenêtre
   - **F:** Focaliser sur une mèche spécifique, utile lorsque plusieurs mèches sont présentes.
   - **U:** Désactiver le focus, permettant à nouveau l'utilisation des touches WASD pour le déplacement standard.
-
-Ces contrôles offrent une expérience utilisateur intuitive pour la navigation et l'interaction avec des environnements 3D ou des objets virtuels.

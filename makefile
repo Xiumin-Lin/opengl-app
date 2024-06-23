@@ -7,7 +7,6 @@ FLAGS = -std=c++14 -Wall -pedantic -arch arm64 -fmessage-length=0
 INCLUDE = -I/opt/homebrew/opt/glew/include -I/opt/homebrew/opt/glfw/include -Ivendor
 LOC_LIB = -L/opt/homebrew/opt/glew/lib -L/opt/homebrew/opt/glfw/lib -lGLEW -lglfw
 FRAMEWORKS = -framework Cocoa -framework OpenGL -framework IOKit
-
 all:
 	${CC} ${FLAGS} ${FRAMEWORKS} -o ${BIN} ${SRC} ${INCLUDE} ${LOC_LIB}
 

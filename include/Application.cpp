@@ -111,10 +111,6 @@ void Application::Initialize(GLFWwindow *window, int width, int height, float ca
     
 #pragma region MESHES LOADING==================================
     // Charger l'objet par défaut puis l'objet spécifié par le param
-    Object defaultObject;
-    defaultObject.loadMeshes("./assets/teapot/teapot.obj", "./assets/teapot/");
-    m_objects.push_back(std::move(defaultObject));
-
     Object userObject;
     if (!object_filename.empty()) {
         userObject.loadMeshes(object_filename, mtl_basepath);
@@ -122,6 +118,10 @@ void Application::Initialize(GLFWwindow *window, int width, int height, float ca
         userObject.loadMeshes("./assets/teapot/teapot.obj", "./assets/teapot/");
     }
     m_objects.push_back(std::move(userObject));
+
+    Object defaultObject;
+    defaultObject.loadMeshes("./assets/yoda/yoda.obj", "./assets/yoda/");
+    m_objects.push_back(std::move(defaultObject));
 
     cout << "Application Loaded :" << m_objects.size() << " object" << endl;
 #pragma endregion
