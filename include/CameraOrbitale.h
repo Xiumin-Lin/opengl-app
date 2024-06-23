@@ -1,6 +1,6 @@
 #ifndef CAMERA_ORBITALE_H
 #define CAMERA_ORBITALE_H
-
+#define _USE_MATH_DEFINES
 #include <algorithm>
 #include <GLFW/glfw3.h>
 
