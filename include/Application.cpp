@@ -202,7 +202,7 @@ void Application::Render()
 
         Mat4 worldMatrix_yoda = Mat4();
         // -------------- Scale ------------------
-        worldMatrix_yoda.scale(0.01f, 0.01f, 0.01f); // yoda is very big, active this scale and initial radius of the camera to 50
+        worldMatrix_yoda.scale(0.005f, 0.005f, 0.005f); // yoda is very big, active this scale and initial radius of the camera to 50
         // -------------- Rotate -----------------
         worldMatrix_yoda.rotateX(-90);
         worldMatrix_yoda.rotateZ(-angle);
@@ -211,7 +211,7 @@ void Application::Render()
 #pragma endregion
 
 #pragma region DRAW -------------------------------------------
-    for (int i = 0; i < m_objects.size(); i++)
+    for (size_t i = 0; i < m_objects.size(); i++)
     {
         Object &object = m_objects[i];
         // DEBUG on suppose que l'objet yoda est le deuxieme pour les tests
