@@ -18,7 +18,7 @@ clean:
 # BIN = opengl_app.exe
 # FLAGS = -std=c++14 -Wall -pedantic -fmessage-length=0
 # INCLUDE = -I../libs/GLFW/include -I../libs/GLEW/include -Ivendor
-# LOC_LIB = -L../libs/GLFW/lib/lib-mingw-w64 -L../libs/GLEW/lib/Release/x64 -lglfw3dll -lglew32s -lopengl32
+# LOC_LIB = -L../libs/GLFW/lib/lib-mingw-w64 -L../libs/GLEW/lib/Release/x64 -lglfw3 -lglew32 -lopengl32
 
 # all:
 # 	${CC} ${FLAGS} -o ${BIN} ${SRC} ${INCLUDE} ${LOC_LIB}
