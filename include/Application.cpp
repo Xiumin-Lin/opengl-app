@@ -59,7 +59,7 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
         app->GetCamera().keyCallback(key, scancode, action, mods);
         // Change thee target of the camera to the next mesh
         if(key == GLFW_KEY_F && action == GLFW_PRESS) {
-            app->NextMeshFocus();
+            app->NextObjectFocus();
         }
         // Reset the target of the camera to the origin == UNFOCUS
         else if (key == GLFW_KEY_U && action == GLFW_PRESS) {
@@ -111,42 +111,28 @@ void Application::Initialize(GLFWwindow *window, int width, int height, float ca
 #pragma endregion
     
 #pragma region MESHES LOADING==================================
-    if (object_filename.empty()) m_meshes = Utils::load_obj("./assets/teapot/teapot.obj", "./assets/teapot/"); // default mesh
-    else m_meshes = Utils::load_obj(object_filename, mtl_basepath);
+    // Charger l'objet par défaut
+    Object defaultObject;
+    defaultObject.loadMeshes("./assets/teapot/teapot.obj", "./assets/teapot/");
+    m_objects.push_back(std::move(defaultObject));
 
-    if (m_meshes.empty()) { cerr << "No mesh loaded" << endl; exit(1); }
-    cout << "Application Loaded " << m_meshes.size() << " meshes" << endl;
+    // Charger l'objet spécifié par le param
+    Object userObject;
+    if (!object_filename.empty()) {
+        userObject.loadMeshes(object_filename, mtl_basepath);
+    } else {
+        userObject.loadMeshes("./assets/teapot/teapot.obj", "./assets/teapot/");
+    }
+    m_objects.push_back(std::move(userObject));
+
+    cout << "Application Loaded :" << m_objects.size() << " object" << endl;
 #pragma endregion
 
 #pragma region CONFIGURE MESHES================================
-    // Comme VAO n'est pas disponible en OpenGL 2.1, on configure et lie en avamce les VBO et IBO
-    // puis dans le render, on appelle ConfigRenderParameters pour configurer les attributs de vertex
-    int program = m_basicProgram.GetProgram();
-    for (std::unique_ptr<Mesh> &mesh_ptr : m_meshes)
+    uint32_t program = m_basicProgram.GetProgram();
+    for (Object &object : m_objects)
     {
-        cout << "> Setup Mesh: " << mesh_ptr->name << endl;
-        mesh_ptr->setAttribLocation(
-            glGetAttribLocation(program, "a_Position"), // sauvegarder les location index pour 
-            glGetAttribLocation(program, "a_Normal"),   // eviter de rappeler glGetAttribLocation à chaque render
-            glGetAttribLocation(program, "a_TexCoords")
-        );
-        mesh_ptr->setUniformLocation(
-            glGetUniformLocation(program, "u_Model"),
-            glGetUniformLocation(program, "u_NormalMatrix")
-        );
-        mesh_ptr->generateGLBuffers();   // setup les VBO et IBO en les liant avec les vertices et indices
-
-        // Load texture and specular texture
-        Material *material = mesh_ptr->material;
-        material->setMaterialAttribLocation(    // sauvegarder les location index
-            glGetUniformLocation(program, "u_Material.ambientColor"), 
-            glGetUniformLocation(program, "u_Material.diffuseColor"), 
-            glGetUniformLocation(program, "u_Material.specularColor"),
-            glGetUniformLocation(program, "u_Material.shininess")
-        );
-        material->tryLoadTexture();         // tente de load les textures
-        material->tryLoadSpecularTexture(); // (le nom de des textures est recuperé dans le fichier mtl via tiny_obj_loader)
-        cout << endl;                       // si succes, les textures sont bind et has_texture est mis à true
+        object.setupMeshes(program);
     }
 #pragma endregion
 
@@ -165,7 +151,7 @@ void Application::Render()
     glUniformMatrix4fv(glGetUniformLocation(program, "u_Projection"), 1, GL_FALSE, m_projectionMatrix.data);
 #pragma endregion
 
-#pragma region CAMERA VIEW MATRIX
+#pragma region CAMERA VIEW MATRIX------------------------------
     m_camera.update();
     glUniformMatrix4fv(glGetUniformLocation(program, "u_View"), 1, GL_FALSE, m_camera.getViewMatrix().data);
 #pragma endregion
@@ -174,12 +160,11 @@ void Application::Render()
 
 #pragma region LIGHT-------------------------------------------
     float time = static_cast<float>(glfwGetTime());
-    float angle = static_cast<float>(time) * 20.0f;
-    float move = sin(static_cast<float>(time)) * 2000.0f;
-    GLfloat ambientColor[] = {1.0f, 1.0f, 1.0f}; // Lumière ambiante faible
+    float light_move = sin(static_cast<float>(time));
 
-    GLfloat lightDirection[] = {move, 0.0f, 2.0f}; // Direction de la lumière
-    GLfloat lightColor[] = {3.0f, 3.0f, 3.0f};     // Couleur de la source lumineuse
+    GLfloat ambientColor[] = {1.0f, 1.0f, 1.0f};    // Lumiere ambiante faible
+    GLfloat lightDirection[] = {light_move, 0.0f, 2.0f};  // Direction de la lumiere
+    GLfloat lightColor[] = {3.0f, 3.0f, 3.0f};      // Couleur de la lumiere
 
     vec3 camPos = m_camera.getPosition();
     glUniform3f(glGetUniformLocation(program, "u_ViewPosition"), camPos.x, camPos.y, camPos.z);
@@ -200,41 +185,60 @@ void Application::Render()
     // glUniform3f(glGetUniformLocation(m_basicProgram.GetProgram(), "u_LightAmbientIntensity"), ambientIntensity.x, ambientIntensity.y, ambientIntensity.z);
 #pragma endregion
 
-#pragma region DRAW -------------------------------------------
-
-    for (std::unique_ptr<Mesh> &mesh_ptr : m_meshes)
-    {
 #pragma region WORLD MATRIX = Translate x Rotate x Scale (repecter l ordre)
+        // World Matrix = Translate * Rotate * Scale (dans l'ordre: scale > rotate > translate)
         Mat4 worldMatrix = Mat4();
-        // World Matrix = Translate * Rotate * Scale (dans cet ordre)
+        float worldMatrix_angle = static_cast<float>(time) * 20.0f;
+        float worldMatrix_move = sin(static_cast<float>(time)) * 10.0f;
         // -------------- Scale ------------------
-        worldMatrix.scale(0.01f, 0.01f, 0.01f); // yoda is very big, active this scale and initial radius of the camera to 50
+        worldMatrix.scale(1.0f, 1.0f, 1.0f);
         // -------------- Rotate -----------------
         worldMatrix.rotateX(-90);
-        // worldMatrix.rotateY(angle);
-        worldMatrix.rotateZ(angle);
+        // worldMatrix.rotateY(worldMatrix_angle);
+        worldMatrix.rotateZ(worldMatrix_angle);
         // -------------- Translate --------------
-        worldMatrix.translate(0.0f, move, 0.0f);
-        mesh_ptr->setWorldMatrix(worldMatrix);
+        worldMatrix.translate(worldMatrix_move, 0.0f, 0.0f);
+
+        Mat4 worldMatrix_yoda = Mat4();
+        // float worldMatrix_yoda_move = sin(static_cast<float>(time)) * 2000.0f;
+        // -------------- Scale ------------------
+        worldMatrix_yoda.scale(0.01f, 0.01f, 0.01f); // yoda is very big, active this scale and initial radius of the camera to 50
+        // -------------- Rotate -----------------
+        worldMatrix_yoda.rotateX(-90);
+        worldMatrix_yoda.rotateZ(-worldMatrix_angle);
+        // -------------- Translate --------------
+        worldMatrix_yoda.translate(0.0f, -5000.0f, 0.0f);
 #pragma endregion
 
-        Material *material = mesh_ptr->material;
-        // SETUP Material light -------------------------------
-        material->configUniformMaterialParameters();
-        // Bind Texture if present ----------------------------
-        glUniform1i(glGetUniformLocation(program, "u_Material.hasTexture"), material->has_texture ? 1 : 0);
-        if (material->has_texture)
-            material->texture->bind(GL_TEXTURE0, glGetUniformLocation(program, "u_Texture"), 0);
+#pragma region DRAW -------------------------------------------
+    for (int i = 0; i < m_objects.size(); i++)
+    {
+        Object &object = m_objects[i];
+        // DEBUG on suppose que l'objet yoda est le deuxieme pour les tests
+        bool isObjectYoda = i == 1 ? true : false;
+        for (std::unique_ptr<Mesh> &mesh_ptr : object.getMeshes())
+        {
+            // Set World Matrix -------------------------------
+            mesh_ptr->setWorldMatrix(isObjectYoda ? worldMatrix_yoda : worldMatrix);
 
-        glUniform1i(glGetUniformLocation(program, "u_Material.hasTextureSpecular"), material->has_specular_texture ? 1 : 0);
-        if (material->has_specular_texture)
-            material->specular_texture->bind(GL_TEXTURE0, glGetUniformLocation(program, "u_TextureSpecular"), 1);
+            // SETUP Material light ---------------------------
+            Material *material = mesh_ptr->material;
+            material->configUniformMaterialParameters();
+            // Bind Texture if it exists ----------------------
+            glUniform1i(glGetUniformLocation(program, "u_Material.hasTexture"), material->has_texture ? 1 : 0);
+            if (material->has_texture)
+                material->texture->bind(GL_TEXTURE0, glGetUniformLocation(program, "u_Texture"), 0);
 
-        // Draw mesh with material ----------------------------
-        mesh_ptr->draw();
+            glUniform1i(glGetUniformLocation(program, "u_Material.hasTextureSpecular"), material->has_specular_texture ? 1 : 0);
+            if (material->has_specular_texture)
+                material->specular_texture->bind(GL_TEXTURE0, glGetUniformLocation(program, "u_TextureSpecular"), 1);
 
-        // Unbind Texture -------------------------------------
-        material->unbindTexture();
+            // Draw mesh with material ------------------------
+            mesh_ptr->draw();
+
+            // Unbind Texture ---------------------------------
+            material->unbindTexture();
+        }
     }
 #pragma endregion
     // Il on suppose que la phase d'echange des buffers front et back
@@ -243,7 +247,11 @@ void Application::Render()
 
 void Application::Terminate()
 {
-    m_meshes.clear();
+    for (Object &object : m_objects)
+    {
+        object.m_meshes.clear();
+    }
+    m_objects.clear();
     m_basicProgram.Destroy();
 }
 
@@ -261,10 +269,10 @@ void Application::ResizeWindow(int width, int height)
     // Mat4::ortho(&m_projectionMatrix, -right, right, -top, top, -5.0f, 5.0f);
 }
 
-void Application::NextMeshFocus()
+void Application::NextObjectFocus()
 {
-    if (currentMeshFocusIndex < 0) currentMeshFocusIndex = 0;
-    currentMeshFocusIndex = currentMeshFocusIndex % m_meshes.size();
-    m_camera.setTarget(m_meshes[currentMeshFocusIndex]->getPosition());
-    currentMeshFocusIndex++;
+    if (currentObjectFocusIndex < 0) currentObjectFocusIndex = 0;
+    currentObjectFocusIndex = currentObjectFocusIndex % m_objects.size();
+    m_camera.setTarget(m_objects[currentObjectFocusIndex].getPosition());
+    currentObjectFocusIndex++;
 }

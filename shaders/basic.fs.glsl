@@ -6,7 +6,7 @@ varying vec3 v_Normal;
 varying vec2 v_TexCoords;
 
 // Variables uniformes ==========================================
-uniform vec3 u_ViewPosition; // Position de la caméra
+uniform vec3 u_ViewPosition; // Position de la camera
 uniform sampler2D u_Texture;
 uniform sampler2D u_TextureSpecular;
 
@@ -14,13 +14,13 @@ struct Light {
     vec3 direction;     // I
     vec3 ambientColor;  // ia pour la lumière ambiante
     vec3 diffuseColor;  // id pour la lumière diffuse
-    vec3 specularColor; // is pour la lumière spéculaire
+    vec3 specularColor; // is pour la lumière speculaire
 };
 
 struct Material {
     vec3 ambientColor;   // ka pour la couleur du mat ambiante
     vec3 diffuseColor;   // kd pour la couleur du mat diffuse
-    vec3 specularColor;  // ks pour la couleur du mat spéculaire
+    vec3 specularColor;  // ks pour la couleur du mat speculaire
     float shininess;     // Facteur de brillance
 
     int hasTexture;
@@ -40,7 +40,7 @@ vec3 ambient() {
 /**
 * Calculer la lumiere diffuse
 * N = normale en un point (vertex ou fragment) dans l’espace
-* L = vecteur directeur normalisé allant d’un point VERS une lumiere
+* L = vecteur directeur normalise allant d’un point VERS une lumiere
 */
 vec3 diffuse(vec3 N, vec3 L) {
     // loi de lambert = max(N.L, 0) = cos(angle entre N et L)
@@ -52,15 +52,15 @@ vec3 diffuse(vec3 N, vec3 L) {
 * Calcule la lumiere speculaire.
 * 
 * @param N normale du point
-* @param L vecteur directeur normalisé allant d'un point VERS une lumiere
-* @param V vecteur directeur normalisé allant d’un point VERS la caméra
+* @param L vecteur directeur normalise allant d'un point VERS une lumiere
+* @param V vecteur directeur normalise allant d’un point VERS la camera
 * @param lightColor couleur de la lumiere.
 * @param shininess brillance du materiau.
 * @return
 */
 vec3 specular(vec3 N, vec3 L, vec3 V) {
     // Phong model
-    // vec3 R = reflect(-L, N); // L doit être inversé car reflect s'attend à ce que N pointe vers la surface
+    // vec3 R = reflect(-L, N); // L doit être inverse car reflect s'attend à ce que N pointe vers la surface
     // float spec = pow(max(dot(R, V), 0.0), u_Material.shininess);
     // return spec * u_Light.specularColor * u_Material.specularColor;
 
@@ -128,22 +128,21 @@ void main() {
         vec3 result = ambientColor + diffuseColor + specularColor;
         gl_FragColor = vec4(result, 1.0);
     }
-    
 
     // Gradient color -------------------------------------------------------
     // Calculez une couleur de base à partir des valeurs absolues des normales.
     // vec3 baseColor = abs(v_Normal);
 
-    // Calcul des coordonnées normalisées sur l'écran.
+    // Calcul des coordonnees normalisees sur l'ecran.
     // vec2 normalizedCoords = gl_FragCoord.xy / u_Dimensions;
 
-    // // Créez un gradient qui s'assombrit en fonction des positions x et y.
+    // // Creez un gradient qui s'assombrit en fonction des positions x et y.
     // float gradient = 0.7 + 0.3 * (1.0 - normalizedCoords.x) * (1.0 - normalizedCoords.y);
 
     // // Appliquez le gradient à la couleur de base.
     // vec3 gradientColor = baseColor * gradient;
 
-    // Définissez la couleur de sortie.
+    // Definissez la couleur de sortie.
     // gl_FragColor = vec4(gradientColor, 1.0);
     
 }

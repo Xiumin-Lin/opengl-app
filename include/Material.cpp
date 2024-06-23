@@ -66,8 +66,8 @@ void Material::setMaterialAttribLocation(int ambientLocation, int diffuseLocatio
 
 void Material::configUniformMaterialParameters()
 {
-    glUniform3f(ambientLocation, ambient.x / 2, ambient.y, ambient.z);
-    glUniform3f(diffuseLocation, diffuse.x / 2, diffuse.y, diffuse.z);
+    glUniform3f(ambientLocation, ambient.x, ambient.y, ambient.z);
+    glUniform3f(diffuseLocation, diffuse.x, diffuse.y, diffuse.z);
     glUniform3f(specularLocation, specular.x, specular.y, specular.z);
     glUniform1f(shininessLocation, shininess);
 }
