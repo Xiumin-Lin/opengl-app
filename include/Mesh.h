@@ -56,9 +56,6 @@ public:
     void setAttribLocation(int positionLocation, int normalLocation, int texcoordLocation);
     void setUniformLocation(int worldMatrixLocation, int normalMatrixLocation);
     void draw();
-
-    static Mesh GenereTriangle();
-    static Mesh GenererRectangle();
 };
 
 #endif // MESH_H

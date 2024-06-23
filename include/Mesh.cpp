@@ -160,38 +160,3 @@ void Mesh::draw()
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
-
-// ===================================================================================
-
-Mesh Mesh::GenereTriangle()
-{
-    Mesh triangleMesh;
-
-    Vertex v1(vec3(-0.5f, -0.5f, 0.0f), vec3(0.0f, 0.0f, 1.0f), vec2(0.0f, 0.0f));
-    Vertex v2(vec3(0.5f, -0.5f, 0.0f), vec3(0.0f, 1.0f, 0.0f), vec2(1.0f, 0.0f));
-    Vertex v3(vec3(0.0f, 0.5f, 0.0f), vec3(1.0f, 0.0f, 0.0f), vec2(0.5f, 1.0f));
-
-    triangleMesh.vertices = new Vertex[3]{v1, v2, v3};
-    triangleMesh.vertexCount = 3;
-    triangleMesh.indices = new uint32_t[3]{0, 1, 2};
-    triangleMesh.indexCount = 3;
-
-    return triangleMesh;
-}
-
-Mesh Mesh::GenererRectangle()
-{
-    Mesh rectangleMesh;
-
-    Vertex v1(vec3(-0.5f, -0.5f, 0.0f), vec3(0.0f, 0.0f, 1.0f), vec2(0.0f, 0.0f));
-    Vertex v2(vec3(0.5f, -0.5f, 0.0f), vec3(0.0f, 1.0f, 0.0f), vec2(1.0f, 0.0f));
-    Vertex v3(vec3(0.5f, 0.5f, 0.0f), vec3(1.0f, 0.0f, 0.0f), vec2(1.0f, 1.0f));
-    Vertex v4(vec3(-0.5f, 0.5f, 0.0f), vec3(1.0f, 1.0f, 0.0f), vec2(0.0f, 1.0f));
-
-    rectangleMesh.vertices = new Vertex[4]{v1, v2, v3, v4};
-    rectangleMesh.vertexCount = 4;
-    rectangleMesh.indices = new uint32_t[6]{0, 1, 2, 0, 2, 3};
-    rectangleMesh.indexCount = 6;
-
-    return rectangleMesh;
-}

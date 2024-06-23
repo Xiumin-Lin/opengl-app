@@ -31,7 +31,7 @@ int main(void)
         std::cout << "Erreur d'initialisation de GLEW" << std::endl;
         return -1;
     }
-    // OPENGL CONFIG -----------------------------------------------
+#pragma region OPENGL CONFIG-----------------------------------------------
     // Activer le test de profondeur
     glEnable(GL_DEPTH_TEST);
 
@@ -55,7 +55,7 @@ int main(void)
 
     // Activer la correction gamma
     glEnable(GL_FRAMEBUFFER_SRGB);
-
+#pragma endregion
     // ---------------------------------------------------------------
     Application app;
     app.Initialize(window, WIDTH, HEIGHT, 50, "assets/yoda/yoda.obj", "assets/yoda/");

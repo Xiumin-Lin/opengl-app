@@ -72,7 +72,9 @@ void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods
 void Application::Initialize(GLFWwindow *window, int width, int height, float cameraInitRadium, const string &object_filename, const string &mtl_basepath)
 {
     m_window = window;
-    glfwSetWindowUserPointer(window, this); // Stocker le pointeur vers l'instance de la classe Application
+    // Stocker le pointeur vers l'instance de la classe Application
+    // Utiliser pour les callbacks de GLFW
+    glfwSetWindowUserPointer(window, this);
     ResizeWindow(width, height);
 
     glfwSetFramebufferSizeCallback(m_window, window_resize_callback);
@@ -109,7 +111,7 @@ void Application::Initialize(GLFWwindow *window, int width, int height, float ca
 #pragma endregion
     
 #pragma region MESHES LOADING==================================
-    if (object_filename.empty()) m_meshes.push_back(std::make_unique<Mesh>(Mesh::GenererRectangle())); // default mesh
+    if (object_filename.empty()) m_meshes = Utils::load_obj("./assets/teapot/teapot.obj", "./assets/teapot/"); // default mesh
     else m_meshes = Utils::load_obj(object_filename, mtl_basepath);
 
     if (m_meshes.empty()) { cerr << "No mesh loaded" << endl; exit(1); }
@@ -173,7 +175,7 @@ void Application::Render()
 #pragma region LIGHT-------------------------------------------
     float time = static_cast<float>(glfwGetTime());
     float angle = static_cast<float>(time) * 20.0f;
-    float move = sin(static_cast<float>(time));
+    float move = sin(static_cast<float>(time)) * 2000.0f;
     GLfloat ambientColor[] = {1.0f, 1.0f, 1.0f}; // Lumière ambiante faible
 
     GLfloat lightDirection[] = {move, 0.0f, 2.0f}; // Direction de la lumière
@@ -208,11 +210,11 @@ void Application::Render()
         // -------------- Scale ------------------
         worldMatrix.scale(0.01f, 0.01f, 0.01f); // yoda is very big, active this scale and initial radius of the camera to 50
         // -------------- Rotate -----------------
-        // worldMatrix.rotateX(angle);
+        worldMatrix.rotateX(-90);
         // worldMatrix.rotateY(angle);
         worldMatrix.rotateZ(angle);
         // -------------- Translate --------------
-        // worldMatrix.translate(move, 0.0f, 0.0f);
+        worldMatrix.translate(0.0f, move, 0.0f);
         mesh_ptr->setWorldMatrix(worldMatrix);
 #pragma endregion
 
