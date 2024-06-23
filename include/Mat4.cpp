@@ -2,6 +2,8 @@
 #include <cmath>
 #include <cstring>
 
+using namespace std;
+
 Mat4::Mat4() { loadIdentity(); }
 
 void Mat4::loadIdentity()
@@ -24,7 +26,7 @@ void Mat4::ortho(Mat4* m, float left, float right, float bottom, float top, floa
 
 void Mat4::perspective(Mat4* m, float fov, float aspect, float znear, float zfar)
 {
-    float f = 1.0f / std::tan(fov * 0.5f);
+    float f = 1.0f / tan(fov * 0.5f);
 
     m->loadIdentity();
     m->data[0] = f / aspect;
@@ -60,8 +62,8 @@ void Mat4::rotateX(float angle)
 void Mat4::rotateY(float angle)
 {
     float rad = angle * M_PI / 180.0f;
-    float c = std::cos(rad);
-    float s = std::sin(rad);
+    float c = cos(rad);
+    float s = sin(rad);
     Mat4 rotation;
     rotation.data[0] = c;
     rotation.data[2] = -s;
@@ -73,8 +75,8 @@ void Mat4::rotateY(float angle)
 void Mat4::rotateZ(float angle)
 {
     float rad = angle * M_PI / 180.0f;
-    float c = std::cos(rad);
-    float s = std::sin(rad);
+    float c = cos(rad);
+    float s = sin(rad);
     Mat4 rotation;
     rotation.data[0] = c;
     rotation.data[1] = s;

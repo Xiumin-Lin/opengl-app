@@ -1,6 +1,8 @@
 #ifndef VERTEX_H
 #define VERTEX_H
 
+using namespace std;
+
 struct vec2
 {
     float x, y;

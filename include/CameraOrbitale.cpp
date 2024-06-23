@@ -1,5 +1,7 @@
 #include "CameraOrbitale.h"
 
+using namespace std;
+
 CameraOrbitale::CameraOrbitale(const vec3 &target, float initialRadius, float initialPhi, float initialTheta)
     : m_target(target), m_up(0.0f, 1.0f, 0.0f), m_radius(initialRadius), m_phi(initialPhi), m_theta(initialTheta)
 {
