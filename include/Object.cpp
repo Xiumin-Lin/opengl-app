@@ -14,6 +14,12 @@ void Object::loadMeshes(const string& object_filename, const string& mtl_basepat
     }
 }
 
+/**
+ * Setup les attributs de vertex et les uniforms pour chaque mesh de l'object
+ * Genere et bind les VBO et IBO pour chaque mesh
+ * Setup les uniforms pour le material de chaque mesh
+ * Charge les textures et specular textures si elles existent
+ */
 void Object::setupMeshes(uint32_t program) {
     for (unique_ptr<Mesh>& mesh : m_meshes) {
         cout << "> Setup Mesh: " << mesh->name << endl;

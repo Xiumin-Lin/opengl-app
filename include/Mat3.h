@@ -5,6 +5,10 @@
 #include <cmath>
 #include <cstring>
 
+/**
+ * Matrice 3x3
+ * Colonne-major
+ */
 struct Mat3
 {
 public:

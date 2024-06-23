@@ -8,6 +8,10 @@
 #include "Mat3.h"
 #include "Vertex.h"
 
+/**
+ * Matrice 4x4 pour les transformations 3D
+ * Colonne-major
+ */
 struct Mat4
 {
     /**
@@ -45,7 +49,6 @@ struct Mat4
                 result.data[col * 4 + row] = 0.0f;
                 for (int k = 0; k < 4; ++k)
                 { 
-                    // Produit scalaire de la row de `this` et de la col de `other`
                     result.data[col * 4 + row] += data[k * 4 + row] * other.data[col * 4 + k];
                 }
             }

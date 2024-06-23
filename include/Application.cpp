@@ -110,12 +110,11 @@ void Application::Initialize(GLFWwindow *window, int width, int height, float ca
 #pragma endregion
     
 #pragma region MESHES LOADING==================================
-    // Charger l'objet par défaut
+    // Charger l'objet par défaut puis l'objet spécifié par le param
     Object defaultObject;
     defaultObject.loadMeshes("./assets/teapot/teapot.obj", "./assets/teapot/");
     m_objects.push_back(std::move(defaultObject));
 
-    // Charger l'objet spécifié par le param
     Object userObject;
     if (!object_filename.empty()) {
         userObject.loadMeshes(object_filename, mtl_basepath);
@@ -131,10 +130,16 @@ void Application::Initialize(GLFWwindow *window, int width, int height, float ca
     uint32_t program = m_basicProgram.GetProgram();
     for (Object &object : m_objects)
     {
+        /**
+         * - Configurer les attributs de vertex pour chaque mesh
+         * - Configure les uniforms pour chaque mesh
+         * - Genere et bind les VBO et IBO
+         * - Configurer les uniforms de material de chaque mesh
+         * - Charge les textures et specular textures si elles existent
+        */
         object.setupMeshes(program);
     }
 #pragma endregion
-
 }
 
 void Application::Render()
@@ -154,7 +159,6 @@ void Application::Render()
     m_camera.update();
     glUniformMatrix4fv(glGetUniformLocation(program, "u_View"), 1, GL_FALSE, m_camera.getViewMatrix().data);
 #pragma endregion
-
     // glUniform2f(glGetUniformLocation(program, "u_Dimensions"), float(m_windowWidth), float(m_windowHeight));
 
 #pragma region LIGHT-------------------------------------------
@@ -176,7 +180,7 @@ void Application::Render()
     // vec3 skyColor = vec3(0.0, 0.1, 0.4);        // Bleu clair pour le ciel
     // vec3 groundColor = vec3(0.3, 0.25, 0.2);    // Marron pour le sol
     // vec3 skyDirection = vec3(0.0, 1.0, 0.0);    // Direction du ciel
-    // vec3 ambientIntensity = vec3(0.1, 0.1, 0.1);// Intensité lumineuse ambiante faible
+    // vec3 ambientIntensity = vec3(0.1, 0.1, 0.1);// Intensite lumineuse ambiante
 
     // glUniform3f(glGetUniformLocation(m_basicProgram.GetProgram(), "u_SkyColor"), skyColor.x, skyColor.y, skyColor.z);
     // glUniform3f(glGetUniformLocation(m_basicProgram.GetProgram(), "u_GroundColor"), groundColor.x, groundColor.y, groundColor.z);
@@ -194,7 +198,6 @@ void Application::Render()
         worldMatrix.scale(scale, scale, scale);
         // -------------- Rotate -----------------
         worldMatrix.rotateX(-90);
-        // worldMatrix.rotateY(worldMatrix_angle);
         worldMatrix.rotateZ(angle);
         // -------------- Translate --------------
         worldMatrix.translate(30.0f, 0.0f, move); // sur le coté et en mouvement de haut en bas
@@ -213,17 +216,18 @@ void Application::Render()
     for (size_t i = 0; i < m_objects.size(); i++)
     {
         Object &object = m_objects[i];
-        // DEBUG on suppose que l'objet yoda est le deuxieme pour les tests
+        // [TEST] on suppose que l'objet yoda est le deuxieme pour les tests
+        // pour charger des worldMatrix differentes
         bool isObjectYoda = i == 1 ? true : false;
         for (std::unique_ptr<Mesh> &mesh_ptr : object.getMeshes())
         {
-            // Set World Matrix -------------------------------
+            // SETUP World Matrix -------------------------------
             mesh_ptr->setWorldMatrix(isObjectYoda ? worldMatrix_yoda : worldMatrix);
 
             // SETUP Material light ---------------------------
             Material *material = mesh_ptr->material;
             material->configUniformMaterialParameters();
-            // Bind Texture if it exists ----------------------
+            // BIND Texture if it exists ----------------------
             glUniform1i(glGetUniformLocation(program, "u_Material.hasTexture"), material->has_texture ? 1 : 0);
             if (material->has_texture)
                 material->texture->bind(GL_TEXTURE0, glGetUniformLocation(program, "u_Texture"), 0);
@@ -233,6 +237,7 @@ void Application::Render()
                 material->specular_texture->bind(GL_TEXTURE0, glGetUniformLocation(program, "u_TextureSpecular"), 1);
 
             // Draw mesh with material ------------------------
+            // VBO & IBO are bind before draw and unbind at the end of the draw
             mesh_ptr->draw();
 
             // Unbind Texture ---------------------------------
@@ -262,12 +267,16 @@ void Application::ResizeWindow(int width, int height)
     // Recalculer la matrice de projection
     // PERPECTIVE
     Mat4::perspective(&m_projectionMatrix, 45.0f, float(m_windowWidth) / float(m_windowHeight), 0.1f, 100.0f);
+    
     // ORTHO
     // float right = float(m_windowWidth) / 2.0f; // float(m_windowWidth)
     // float top = float(m_windowWidth) / 2.0f;   // float(m_windowHeight)
     // Mat4::ortho(&m_projectionMatrix, -right, right, -top, top, -5.0f, 5.0f);
 }
 
+/**
+ * Change the target of the camera to the next object after button F is pressed
+ */
 void Application::NextObjectFocus()
 {
     if (currentObjectFocusIndex < 0) currentObjectFocusIndex = 0;
